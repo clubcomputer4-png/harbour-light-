@@ -1,5 +1,3 @@
-# harbour-light-
-A guiding light for Immigrants in a new land. A multilingual digital hub connecting newcomers to essential services.
 # Harbour Light  
 ### A Guiding Platform for Migrants, Immigrants, and Refugees in India  
 
