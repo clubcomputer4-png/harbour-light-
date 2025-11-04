@@ -1,797 +1,241 @@
-<!doctype html>
-<!--
-  Harbour Light — India Edition (single-file web app)
-  Filename: index.html
-  Purpose: Prototype web app for immigrants, internal migrants & refugees in India.
-  Features:
-   - Single-file, offline-friendly prototype (no server required)
-   - Mobile-first, app-like look with purple gradient palette and bottom navigation
-   - Multilingual UI: English, Hindi, Kannada, Tamil, Malayalam, Urdu
-   - Location-aware search + radius filtering + directions (Google Maps)
-   - Crisis helplines (India-focused) + placeholder for regional mental-health helplines
-   - Add resources (local-only) + sample data + import/export JSON for sharing
-   - LocalStorage persistence; simple verification flag workflow
-   - Accessibility hints and keyboard shortcuts
-  Instructions:
-   - Save as index.html and open in a modern browser (Chrome/Edge/Firefox).
-   - To reset demo data: Settings -> Reset Data OR clear localStorage key "harbour_state".
-   - To extend translations or change sample data: edit TRANSLATIONS and SAMPLE_* arrays in script.
-   - For production: add server-side verification workflow & secure backend.
--->
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Harbour Light — India Edition</title>
-  <meta name="description" content="Harbour Light — a multilingual hub for immigrants, internal migrants & refugees across India. Find local verified services, helplines, and skill-building resources."/>
-  <meta name="theme-color" content="#5B21B6" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Relief & Assistance Map — Bangalore Humanitarian Resource Finder" />
+  <title>Bangalore Relief & Assistance Map</title>
+
   <style>
-    /* ---------- THEME / RESET ---------- */
-    :root{
-      --bg:#1f0b3a;
-      --card:#ffffff;
-      --muted:#9AA0B2;
-      --text:#0b1020;
-      --accent1:#7C3AED; /* purple */
-      --accent2:#A78BFA; /* light purple */
-      --accent3:#C4B5FD;
-      --glass: rgba(255,255,255,0.06);
-      --radius:14px;
-      font-family: Inter, "Noto Sans", "Segoe UI", Roboto, "Helvetica Neue", Arial, system-ui;
-      color-scheme: light;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      background: linear-gradient(180deg, rgba(124,58,237,0.08) 0%, rgba(167,139,250,0.03) 40%, rgba(255,255,255,0.02) 100%), radial-gradient(800px 400px at 10% 10%, rgba(124,58,237,0.08), transparent 10%);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      padding:12px;
-      color:var(--text);
+    /* --- GLOBAL STYLE --- */
+    :root {
+      --primary: #6a0dad;
+      --secondary: #9d4edd;
+      --accent: #c77dff;
+      --light: #f8f4ff;
+      --gradient: linear-gradient(135deg, #6a0dad 0%, #9d4edd 50%, #c77dff 100%);
     }
 
-    /* ---------- APP FRAME ---------- */
-    .app {
-      max-width:1100px; margin:0 auto; display:flex; flex-direction:column; gap:12px; min-height:calc(100vh - 24px);
-    }
-    header.appbar{
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-      background: linear-gradient(90deg,var(--accent1), var(--accent2));
-      color:white; padding:12px; border-radius:16px;
-      box-shadow: 0 8px 28px rgba(124,58,237,0.18);
-    }
-    .brand {display:flex; gap:12px; align-items:center}
-    .logo {
-      width:56px; height:56px; border-radius:12px;
-      background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.06));
-      display:flex; align-items:center; justify-content:center; font-weight:700; font-size:20px; color:white;
-      box-shadow: 0 8px 20px rgba(15,23,42,0.14);
-    }
-    header .title {font-size:16px; font-weight:700}
-    header .subtitle {font-size:12px; opacity:0.95}
-
-    /* ---------- MAIN LAYOUT ---------- */
-    main.container { display:grid; grid-template-columns: 1fr; gap:12px; padding-bottom:80px; }
-    @media(min-width:980px){
-      main.container { grid-template-columns: 360px 1fr; align-items:start; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Roboto, Arial, sans-serif;
     }
 
-    /* ---------- LEFT SIDEBAR / CONTROLS ---------- */
-    .card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,255,0.96));
-      border-radius:var(--radius); padding:14px; box-shadow: 0 10px 30px rgba(2,6,23,0.06);
+    body {
+      background: var(--gradient);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
-    .search-row { display:flex; gap:8px; align-items:center }
-    input[type="search"], input[type="text"], input[type="number"], textarea, select {
-      border-radius:10px; border:1px solid #eef2f9; padding:10px; font-size:14px; width:100%;
-      background:white;
+
+    header {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1rem;
+      text-align: center;
+      backdrop-filter: blur(6px);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
     }
-    .btn {
-      padding:10px 12px; border-radius:10px; border:none; cursor:pointer; font-weight:600;
-      background: linear-gradient(90deg,var(--accent1),var(--accent2)); color:white;
-      box-shadow: 0 8px 20px rgba(124,58,237,0.12);
+
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
     }
-    .btn.ghost { background:transparent; color:var(--accent1); border:1px solid rgba(124,58,237,0.12); box-shadow:none; font-weight:600 }
 
-    .filters { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px }
-    .chip { padding:8px 10px; border-radius:999px; background:#fff; border:1px solid #f1f5f9; cursor:pointer; font-size:13px }
-    .chip.active { background:linear-gradient(90deg,var(--accent1),var(--accent2)); color:white; border:none; box-shadow: 0 8px 24px rgba(124,58,237,0.12) }
-
-    .stat-grid { display:flex; gap:10px; margin-top:12px; }
-    .stat { flex:1; padding:10px; border-radius:10px; background:linear-gradient(90deg,#ffffff,#f8faff); text-align:center; min-width:90px }
-
-    /* ---------- LIST ---------- */
-    .list { display:grid; gap:10px; margin-top:12px }
-    .list-item {
-      display:flex; gap:12px; align-items:flex-start; padding:12px; border-radius:12px;
-      border:1px solid #f1f5f9; background:linear-gradient(180deg,#fff,#fbfcff);
+    header p {
+      font-size: 1rem;
+      opacity: 0.9;
     }
-    .icon {
-      width:56px; height:56px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-weight:700;
-      background: linear-gradient(135deg,#7C3AED,#A78BFA); flex-shrink:0;
+
+    main {
+      flex: 1;
+      padding: 1rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
     }
-    .meta h3 { margin:0; font-size:15px }
-    .meta p { margin:6px 0 0; color:var(--muted); font-size:13px }
-    .distance { font-size:12px; color:#4F46E5; font-weight:700; margin-top:6px }
 
-    .actions { display:flex; gap:8px; align-items:center; margin-left:auto }
-    .pill { padding:8px 10px; border-radius:10px; background:var(--accent1); color:white; border:none; cursor:pointer; font-weight:700 }
-
-    /* ---------- STORIES / COURSES ---------- */
-    .testimonial { font-style:italic; color:var(--text); background: linear-gradient(90deg, rgba(255,255,255,0.5), rgba(255,255,255,0.4)); padding:12px; border-radius:10px }
-
-    /* ---------- BOTTOM NAV (app-like) ---------- */
-    nav.bottom-nav {
-      position:fixed; left:50%; transform:translateX(-50%); bottom:12px; width:calc(100% - 24px); max-width:980px;
-      display:flex; justify-content:space-between; gap:8px; padding:8px; border-radius:999px; background:linear-gradient(90deg, rgba(255,255,255,0.9), rgba(255,255,255,0.92));
-      box-shadow:0 18px 50px rgba(15,23,42,0.08);
-      z-index:60;
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
     }
-    .nav-btn{ flex:1; display:flex; gap:8px; align-items:center; justify-content:center; padding:10px; border-radius:10px; cursor:pointer; border:none; background:transparent; font-weight:700 }
-    .nav-btn.active { background: linear-gradient(90deg,var(--accent1),var(--accent2)); color:white }
 
-    /* ---------- FOOTER ---------- */
-    footer.small { font-size:12px; color:var(--muted); text-align:center; padding:8px 0 }
+    button {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
 
-    /* ---------- RESPONSIVE ---------- */
-    @media(max-width:480px){
-      .brand .title{font-size:15px}
-      .logo{width:48px;height:48px}
-      .icon{width:48px;height:48px}
-      header.appbar{padding:10px}
-      nav.bottom-nav{padding:6px}
+    button:hover {
+      background: rgba(255, 255, 255, 0.35);
+      transform: translateY(-1px);
+    }
+
+    section {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    h2 {
+      margin-bottom: 0.6rem;
+      font-size: 1.3rem;
+      border-left: 5px solid var(--accent);
+      padding-left: 0.5rem;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 0.5rem;
+    }
+
+    li {
+      margin-bottom: 0.4rem;
+    }
+
+    a {
+      color: #fff;
+      text-decoration: underline;
+    }
+
+    footer {
+      text-align: center;
+      padding: 0.8rem;
+      background: rgba(255, 255, 255, 0.1);
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 1.4rem;
+      }
+      button {
+        font-size: 0.9rem;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="app" role="application" aria-labelledby="appTitle">
-    <header class="appbar">
-      <div class="brand">
-        <div class="logo" aria-hidden>HL</div>
-        <div>
-          <div id="appTitle" class="title">Harbour Light</div>
-          <div id="appSubtitle" class="subtitle">A guiding light for immigrants, internal migrants & refugees in India</div>
-        </div>
-      </div>
+  <header>
+    <h1>Bangalore Relief & Assistance Map</h1>
+    <p>Find nearby shelters, food aid, medical help & support centres</p>
+  </header>
 
-      <div style="display:flex;gap:8px;align-items:center">
-        <select id="lang" aria-label="Language selector" title="Language" style="padding:8px;border-radius:8px;border:none">
-          <!-- JS will populate options for correct ordering -->
-        </select>
+  <main>
+    <div class="controls">
+      <button id="locateBtn">📍 Use My Location</button>
+      <button id="resetBtn">🔄 Reset to Bangalore</button>
+    </div>
 
-        <button id="settingsBtn" class="btn ghost" title="Settings & Export/Import">Settings</button>
-      </div>
-    </header>
+    <section>
+      <h2>📌 Nearby Assistance (Bangalore Default)</h2>
+      <ul id="locationsList">
+        <!-- Filled by JS -->
+      </ul>
+    </section>
 
-    <main class="container" role="main">
-      <!-- LEFT: Controls -->
-      <aside class="card" aria-label="Controls & filters">
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div>
-            <label class="small">Search</label>
-            <div class="search-row" style="margin-top:6px">
-              <input type="search" id="q" placeholder="Search services, keywords, languages..." aria-label="Search services" />
-              <button id="searchBtn" class="btn" aria-label="Search">Search</button>
-            </div>
-            <div class="filters" id="categoryFilters" style="margin-top:10px"></div>
-          </div>
+    <section>
+      <h2>🆘 Emergency Helplines</h2>
+      <ul>
+        <li>🚨 Police: <strong>100</strong></li>
+        <li>🚑 Ambulance: <strong>108</strong></li>
+        <li>👩‍⚕️ Mental Health Helpline (NIMHANS): <strong>080-4611-0007</strong></li>
+        <li>👨‍👩‍👧 Child Helpline: <strong>1098</strong></li>
+        <li>👩‍⚕️ Women’s Helpline: <strong>1091</strong></li>
+      </ul>
+    </section>
 
-          <div>
-            <label class="small">Location</label>
-            <div style="display:flex;gap:8px;margin-top:6px">
-              <button id="useLocation" class="btn" style="flex:1">Use My Location</button>
-              <input id="manualLocation" type="text" placeholder="lat,lng or city (e.g. 28.6139,77.2090 or Delhi)" style="width:200px" />
-            </div>
-            <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
-              <label class="small" style="min-width:64px">Radius (km)</label>
-              <input id="radius" type="number" min="1" max="500" value="50" style="width:80px;padding:8px;border-radius:8px;border:1px solid #eef2f7" />
-              <button id="clearLocation" class="btn ghost">Clear</button>
-            </div>
-          </div>
+    <section>
+      <h2>🤝 NGOs & Relief Centres (Sample Data)</h2>
+      <ul>
+        <li><strong>The Akshaya Patra Foundation</strong> — Food distribution across Bangalore (<a href="https://www.akshayapatra.org/" target="_blank">Visit site</a>)</li>
+        <li><strong>Goonj Bangalore</strong> — Disaster relief & clothing drives (<a href="https://goonj.org/" target="_blank">Visit site</a>)</li>
+        <li><strong>Night Shelter, Majestic</strong> — Free night shelter near KSR railway station</li>
+        <li><strong>Doctors For You</strong> — Emergency medical response unit (Koramangala)</li>
+        <li><strong>Smile Foundation</strong> — Health & education outreach programs (<a href="https://www.smilefoundationindia.org/" target="_blank">Visit site</a>)</li>
+      </ul>
+    </section>
+  </main>
 
-          <div>
-            <label class="small">Quick stats</label>
-            <div class="stat-grid">
-              <div class="stat"><div style="font-weight:700" id="serviceCount">0</div><div class="small">Services</div></div>
-              <div class="stat"><div style="font-weight:700" id="courseCount">0</div><div class="small">Courses</div></div>
-              <div class="stat"><div style="font-weight:700" id="storiesCount">0</div><div class="small">Stories</div></div>
-            </div>
-          </div>
-
-          <div>
-            <label class="small">Crisis Helplines (India)</label>
-            <div style="display:grid;gap:8px;margin-top:8px">
-              <div style="display:flex;justify-content:space-between;align-items:center">
-                <div><div class="small">Police / General Emergency</div><div style="font-weight:700">112</div></div>
-                <a class="pill" href="tel:112" aria-label="Call 112">Call</a>
-              </div>
-              <div style="display:flex;justify-content:space-between;align-items:center">
-                <div><div class="small">Ambulance</div><div style="font-weight:700">102 / 108 (varies by state)</div></div>
-                <a class="pill" href="tel:108">Call</a>
-              </div>
-              <div style="display:flex;justify-content:space-between;align-items:center">
-                <div><div class="small">Women Helpline</div><div style="font-weight:700">181</div></div>
-                <a class="pill" href="tel:181">Call</a>
-              </div>
-              <div style="display:flex;justify-content:space-between;align-items:center">
-                <div><div class="small">National Mental Health Helpline</div><div style="font-weight:700">14416</div></div>
-                <a class="pill" href="tel:14416">Call</a>
-              </div>
-            </div>
-            <div class="small" style="margin-top:8px; color:var(--muted)">For state-level mental health numbers, search your city or add a local helpline.</div>
-          </div>
-
-          <div>
-            <h4 style="margin:6px 0 8px">Add a Resource</h4>
-            <form id="addForm" class="add-form" aria-label="Add resource form">
-              <input id="r_name" type="text" placeholder="Name / Organisation" required />
-              <input id="r_phone" type="text" placeholder="Phone (optional)" />
-              <input id="r_category" type="text" placeholder="Category (e.g. Healthcare, Housing, Legal, Food, Employment)" />
-              <input id="r_location" type="text" placeholder="lat,lng (optional) or city" />
-              <textarea id="r_description" rows="2" placeholder="Short description & languages served"></textarea>
-              <div style="display:flex;gap:8px;margin-top:6px">
-                <button class="btn" type="submit">Add</button>
-                <button id="addSample" type="button" class="btn ghost">Add Sample</button>
-                <button id="exportBtn" type="button" class="btn ghost">Export JSON</button>
-              </div>
-            </form>
-          </div>
-
-        </div>
-      </aside>
-
-      <!-- RIGHT: Results -->
-      <section>
-        <div class="card" aria-live="polite">
-          <div style="display:flex;gap:12px;align-items:start">
-            <div style="flex:1">
-              <h2 id="resultsHeader" style="margin:0">Nearby Services</h2>
-              <div id="resultsSub" class="small" style="margin-top:6px">Showing verified & community-submitted resources found inside your radius.</div>
-            </div>
-            <div style="display:flex;gap:8px;align-items:center">
-              <button id="importBtn" class="btn ghost">Import JSON</button>
-              <button id="resetData" class="btn ghost">Reset Data</button>
-            </div>
-          </div>
-
-          <div id="list" class="list" style="margin-top:12px"></div>
-
-          <div style="margin-top:18px">
-            <h3 id="coursesTitle">Free Courses & Skill-building</h3>
-            <div id="courses" style="display:grid;gap:8px;margin-top:8px"></div>
-          </div>
-        </div>
-
-        <div class="card" style="margin-top:12px">
-          <h3 id="storiesTitle">Community Stories</h3>
-          <div id="stories" style="display:grid;gap:8px;margin-top:8px"></div>
-        </div>
-
-        <div class="card" style="margin-top:12px">
-          <h3 id="aboutTitle">About Harbour Light</h3>
-          <p id="aboutText" class="small">Harbour Light consolidates verified, location-specific information — building pathways to stability through crisis support, skills and community connection. Prototype: data is stored locally. For production, connect to a backend verification & moderation workflow.</p>
-          <div style="margin-top:8px">
-            <strong>Principles:</strong>
-            <ul>
-              <li>Local & verified where possible</li>
-              <li>Multilingual & accessible</li>
-              <li>Community-sourced stories and help</li>
-              <li>Open & extensible</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="small" role="contentinfo">
-      © Harbour Light — Community Initiative • Prototype • Local demo data
-    </footer>
-  </div>
-
-  <!-- Bottom navigation (app-like) -->
-  <nav class="bottom-nav" role="navigation" aria-label="Main navigation">
-    <button class="nav-btn active" data-panel="search" id="navSearch">Search</button>
-    <button class="nav-btn" data-panel="add" id="navAdd">Add</button>
-    <button class="nav-btn" data-panel="stories" id="navStories">Stories</button>
-    <button class="nav-btn" data-panel="settings" id="navSettings">Settings</button>
-  </nav>
-
-  <!-- Hidden file input for import -->
-  <input type="file" id="fileInput" accept="application/json" style="display:none" />
+  <footer>
+    Designed for Bangalore Humanitarian Relief • Built for community use 💜
+  </footer>
 
   <script>
-    /* ---------------- TRANSLATIONS ----------------
-       Languages supported: en, hi, kn, ta, ml, ur
-       - English (en)
-       - Hindi (hi)
-       - Kannada (kn)
-       - Tamil (ta)
-       - Malayalam (ml)
-       - Urdu (ur)
-    */
-    const TRANSLATIONS = {
-      en: {
-        title: "Harbour Light",
-        subtitle: "A guiding light for immigrants, internal migrants & refugees in India",
-        hello: "Find verified, local help",
-        heroText: "Search essential services — healthcare, legal aid, housing, food, employment, courses — in your area.",
-        helplineTitle: "Crisis Helplines",
-        addTitle: "Add a Resource",
-        storiesTitle: "Community Stories",
-        resultsHeader: "Nearby Services",
-        resultsSub: "Showing verified & community-submitted resources in your radius.",
-        coursesTitle: "Free Courses & Skill-building",
-        aboutTitle: "About Harbour Light",
-        aboutText: "Harbour Light consolidates verified, location-specific information — building pathways to stability through crisis support, skills and community connection."
-      },
-      hi: {
-        title: "हार्बर लाइट",
-        subtitle: "भारत में प्रवासियों, आंतरिक प्रवासियों और शरणार्थियों के लिए एक मार्गदर्शक",
-        hello: "सत्यापित, स्थानीय सहायता खोजें",
-        heroText: "अपने क्षेत्र में स्वास्थ्य, कानूनी सहायता, आवास, भोजन, रोजगार, पाठ्यक्रम जैसी सेवाओं की खोज करें।",
-        helplineTitle: "आपातकालीन हॉटलाइन",
-        addTitle: "संसाधन जोड़ें",
-        storiesTitle: "समुदाय की कहानियाँ",
-        resultsHeader: "नज़दीकी सेवाएँ",
-        resultsSub: "आपके दायरे में सत्यापित और समुदाय द्वारा प्रस्तुत संसाधन दिखाए जा रहे हैं।",
-        coursesTitle: "निःशुल्क पाठ्यक्रम और कौशल विकास",
-        aboutTitle: "Harbour Light के बारे में",
-        aboutText: "Harbour Light सत्यापित, स्थान-विशिष्ट जानकारी एकत्र करता है — संकट सहायता, कौशल और सामुदायिक कनेक्शन के माध्यम से स्थिरता के मार्ग बनाता है।"
-      },
-      kn: {
-        title: "ಹಾರ್ಬರ್ ಲೈಟ್",
-        subtitle: "ಭಾರತದಲ್ಲಿ ವಲಸೆಗಾರರು, ಆಂತರಿಕ ವಲಸೆಗಾರರು ಮತ್ತು ಶರಣಾರ್ಥಿಗಳಿಗಾಗಿ ಮಾರ್ಗದರ್ಶಿ",
-        hello: "ತಿಂಗಳಾ ದೃಢೀಕರಿಸಿದ ಸ್ಥಳೀಯ ಸಹಾಯವನ್ನು ಕಂಡುಹಿಡಿ",
-        heroText: "ನಿಮ್ಮ ಪ್ರದೇಶದಲ್ಲಿ ಆರೋಗ್ಯ, ಕಾನೂನು ಸಹಾಯ, ವಸತಿ, ಆಹಾರ, ಉದ್ಯೋಗ, ಕೋರ್ಸ್ಗಳನ್ನು ಶೋಧಿಸಿ.",
-        helplineTitle: "ತುರ್ತು ಸಹಾಯ ಎಣಿಕೆ",
-        addTitle: "ಸಂಪನ್ಮೂಲವನ್ನು ಸೇರಿಸಿ",
-        storiesTitle: "ಸಮುದಾಯ ಕಥೆಗಳು",
-        resultsHeader: "ದೂರದ ಸೇವೆಗಳು",
-        resultsSub: "ನಿಮ್ಮ ವ್ಯಾಪ್ತಿಯಲ್ಲಿನ ದೃಢೀಕರಿಸಿದ ಮತ್ತು ಸಮುದಾಯವನ್ನು ಸಲ್ಲಿಸಿದ ಸಂಪನ್ಮೂಲಗಳನ್ನು ತೋರಿಸಲಾಗುತ್ತಿದೆ.",
-        coursesTitle: "ಉಚಿತ ಕೋರ್ಸುಗಳು ಮತ್ತು ಕೌಶಲ್ಯಾಭಿವೃದ್ಧಿ",
-        aboutTitle: "Harbour Light ಬಗ್ಗೆ",
-        aboutText: "Harbour Light ದೃಢೀಕರಿಸಿದ, ಸ್ಥಳ-ವಿಶಿಷ್ಟ ಮಾಹಿತಿಯನ್ನು ಸಂಗ್ರಹಿಸುತ್ತದೆ — ಸಹಾಯಕತೆ, ಕೌಶಲ್ಯ ಮತ್ತು ಸಮುದಾಯ ಸಂಪರ್ಕದ ಮೂಲಕ ಸ್ಥಿರತೆಯ ಮಾರ್ಗಗಳನ್ನು ನಿರ್ಮಿಸುವುದು."
-      },
-      ta: {
-        title: "கடற்படை விளக்கு",
-        subtitle: "இந்தியாவில் குடியேறுவோருக்கு, உள்ளக குடியேற்றியோர் மற்றும் அகதிகளுக்கான வழிகாட்டி",
-        hello: "உறுதிசெய்யப்பட்ட, உள்ளூர் உதவியை கண்டுபிடிக்கவும்",
-        heroText: "உங்கள் பகுதியில் மருத்துவம், சட்ட உதவி, இல்லம், உணவு, வேலை, பாடநெறிகளைத் தேடவும்.",
-        helplineTitle: "அவசர மையங்கள்",
-        addTitle: "வளத்தைச் சேர்க்கவும்",
-        storiesTitle: "சமூக கதைகள்",
-        resultsHeader: "அருகேயுள்ள சேவைகள்",
-        resultsSub: "உங்கள் வட்டாரத்தில் உறுதிசெய்யப்பட்ட மற்றும் சமூகத்தால் சமர்ப்பிக்கப்பட்ட வளங்கள் காட்டப்படுகின்றன.",
-        coursesTitle: "இலவச பாடநெறிகள் மற்றும் திறன் மேம்பாடு",
-        aboutTitle: "Harbour Light பற்றி",
-        aboutText: "Harbour Light உறுதிசெய்யப்பட்ட, இடம்-விசேஷமான தகவலை ஒருங்கிணைக்கிறது — அவசர உதவி, திறன் பயிற்சி மற்றும் சமூக இணைப்பின் மூலம் тұрақ்தன்மைக்கு வழிகளை அமைத்தல்."
-      },
-      ml: {
-        title: "ഹാർബർ ലൈറ്റ്",
-        subtitle: "ഇന്ത്യയിൽ കുടിയേറ്റ് വരുന്നവർക്കും ആഭ്യന്തര കുടിയേറ്റക്കാരനും അഭയാർത്ഥികൾക്കും ഒരു ഗൈഡ്",
-        hello: "സത്യപരിശോധിതമായ, പ്രദേശിക സഹായം കണ്ടെത്തുക",
-        heroText: "നിങ്ങളുടെ പ്രദേശത്ത് ആരോഗ്യ, നിയമ സഹായം, താമസം, ഭക്ഷണം, തൊഴിൽ, കോഴ്സുകൾ എന്നിവ തിരയുക.",
-        helplineTitle: "അപതകാല ഹെൽ്പ്",
-        addTitle: "സ്രോതസ്സ് ചേർക്കുക",
-        storiesTitle: "കമ്യൂണിറ്റി കഥകൾ",
-        resultsHeader: "സമീപത്തെ സേവനങ്ങൾ",
-        resultsSub: "നിങ്ങളുടെ റേഡിയസിനുള്ളിൽ സത്യപരിശോധിതവും സമുദായദായകവുമായ സ്രോതസ്സുകൾ കാണിക്കുന്നു.",
-        coursesTitle: "ഉചിതമായ കോഴ്സുകളും കഴിവുതേടലും",
-        aboutTitle: "Harbour Light பற்றி",
-        aboutText: "Harbour Light സത്യപരിശോധിതമായ, സ്ഥലം-നിഷ്ഠ വിവരങ്ങൾ ഒത്തുചേർക്കുന്നു — കൗൺസൽ, കഴിവുചേർച്ച, സമുദായബന്ധം എന്നിവയിലൂടെ സ്ഥിരതയ്ക്ക് വഴിമുറുക്കൽ."
-      },
-      ur: {
-        title: "ہاربر لائٹ",
-        subtitle: "بھارت میں تارکینِ وطن، اندرونِ خانہ ہجرت کرنے والوں اور پناہ گزینوں کے لئے رہنما روشنی",
-        hello: "تصدیق شدہ، مقامی مدد تلاش کریں",
-        heroText: "اپنے علاقے میں صحت کی خدمات، قانونی امداد، رہائش، خوراک، روزگار، اور کورسز تلاش کریں۔",
-        helplineTitle: "ہنگامی ہیلپ لائنز",
-        addTitle: "وسائل شامل کریں",
-        storiesTitle: "کمیونٹی کہانیاں",
-        resultsHeader: "قریبی خدمات",
-        resultsSub: "آپ کے رداس میں تصدیق شدہ اور کمیونٹی کی طرف سے جمع کردہ وسائل دکھائے جا رہے ہیں۔",
-        coursesTitle: "مفت کورسز اور ہنر کی ترقی",
-        aboutTitle: "ہاربر لائٹ کے بارے میں",
-        aboutText: "ہاربر لائٹ تصدیق شدہ، مقام مخصوص معلومات کو مربوط کرتا ہے — ہنگامی مدد، ہنر اور کمیونٹی کنکشن کے ذریعے استحکام کے راستے بنانا۔"
-      }
-    };
-
-    /* ---------------- SAMPLE DATA ---------------- */
-    const SAMPLE_RESOURCES = [
-      {id:'r1', name:'Delhi Community Health Centre', phone:'+91 11 2345 6789', category:'Healthcare', lat:28.6139, lng:77.2090, description:'Free/low-cost clinic. Languages: English, Hindi. Walk-ins welcome.', verified:true},
-      {id:'r2', name:'Newcomer Legal Aid - Delhi', phone:'+91 11 9876 5432', category:'Legal', lat:28.7041, lng:77.1025, description:'Documentation, registrations & counselling. Languages: English, Hindi.', verified:true},
-      {id:'r3', name:'Mumbai Housing Support', phone:'+91 22 4000 1234', category:'Housing', lat:19.0760, lng:72.8777, description:'Temporary housing referrals and tenant advice. Languages: English, Marathi, Hindi.', verified:true},
-      {id:'r4', name:'Local Food Bank - Delhi NCR', phone:'+91 11 3000 4000', category:'Food', lat:28.6963, lng:77.1410, description:'Weekly food distribution. No documents required.', verified:true},
-      {id:'r5', name:'Employment & Skills Centre - Mumbai', phone:'+91 22 5000 6000', category:'Employment', lat:19.0176, lng:72.8562, description:'Job listings, CV support and short vocational training.', verified:true}
+    // --- SAMPLE STATIC DATA ---
+    const defaultLocation = { lat: 12.9716, lon: 77.5946 };
+    const samplePlaces = [
+      { name: "Indira Canteen - Cubbon Park", type: "Food Aid", lat: 12.9765, lon: 77.5920 },
+      { name: "BBMP Night Shelter - Shivajinagar", type: "Shelter", lat: 12.9840, lon: 77.6050 },
+      { name: "Victoria Hospital", type: "Medical Help", lat: 12.9582, lon: 77.5732 },
+      { name: "KR Market Relief Centre", type: "Assistance Hub", lat: 12.9599, lon: 77.5771 },
+      { name: "Goonj Relief Collection Point - Koramangala", type: "NGO Support", lat: 12.9352, lon: 77.6245 },
     ];
 
-    const SAMPLE_COURSES = [
-      {id:'c1', title:'Basic Digital Literacy', provider:'Community Centre', link:'#', description:'Intro to phones, online forms & emails.'},
-      {id:'c2', title:'Hindi for Everyday Use', provider:'Local NGO', link:'#', description:'Conversation practice and basic literacy.'},
-      {id:'c3', title:'Workplace Rights & Safety', provider:'Labour Support NGO', link:'#', description:'Workshop on rights and workplace norms.'}
-    ];
+    const listEl = document.getElementById("locationsList");
 
-    const SAMPLE_STORIES = [
-      {id:'s1', text:'"Harbour Light helped me find a clinic in Delhi that accepted my family without documentation." — R.'},
-      {id:'s2', text:'"A volunteer hub listed here helped me learn basic Hindi and apply for work." — S.'}
-    ];
-
-    /* ---------------- STATE ---------------- */
-    const DEFAULT_STATE = {
-      lang: 'en',
-      resources: [], courses: [], stories: [],
-      userLocation: null,
-      categoryFilter: null,
-      radiusKm: 50,
-      query: ''
-    };
-
-    let state = {};
-
-    /* ---------------- UTILITIES ---------------- */
-    function uid(prefix='id'){ return prefix + Math.random().toString(36).slice(2,9); }
-
-    function distanceKm(aLat,aLng,bLat,bLng){
-      if(aLat==null||bLat==null) return Infinity;
-      const R=6371;
-      const toRad = v => v*Math.PI/180;
-      const dLat = toRad(bLat-aLat);
-      const dLng = toRad(bLng-aLng);
-      const A = Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(toRad(aLat))*Math.cos(toRad(bLat))*Math.sin(dLng/2)*Math.sin(dLng/2);
-      const C = 2*Math.atan2(Math.sqrt(A), Math.sqrt(1-A));
-      return R*C;
-    }
-
-    /* ---------------- PERSISTENCE ---------------- */
-    function saveState(){
-      const payload = {
-        lang: state.lang,
-        resources: state.resources,
-        courses: state.courses,
-        stories: state.stories
-      };
-      localStorage.setItem('harbour_state', JSON.stringify(payload));
-    }
-    function loadState(){
-      const raw = localStorage.getItem('harbour_state');
-      if(!raw){
-        state = {...DEFAULT_STATE, resources: SAMPLE_RESOURCES.slice(), courses: SAMPLE_COURSES.slice(), stories: SAMPLE_STORIES.slice()};
-        return;
-      }
-      try {
-        const parsed = JSON.parse(raw);
-        state = {...DEFAULT_STATE, ...parsed};
-      } catch(e){
-        console.warn('Failed to parse saved state, resetting to default.', e);
-        state = {...DEFAULT_STATE, resources: SAMPLE_RESOURCES.slice(), courses: SAMPLE_COURSES.slice(), stories: SAMPLE_STORIES.slice()};
-      }
-    }
-
-    /* ---------------- i18n ---------------- */
-    function t(k){
-      const dict = TRANSLATIONS[state.lang] || TRANSLATIONS.en;
-      return dict[k] || TRANSLATIONS.en[k] || k;
-    }
-
-    function populateLangSelector(){
-      const order = ['en','hi','kn','ta','ml','ur'];
-      const map = { en:'English', hi:'हिन्दी', kn:'ಕನ್ನಡ', ta:'தமிழ்', ml:'മലയാളം', ur:'اردو' };
-      const sel = document.getElementById('lang');
-      sel.innerHTML = '';
-      order.forEach(code=>{
-        const opt = document.createElement('option');
-        opt.value = code; opt.textContent = map[code] || code;
-        sel.appendChild(opt);
-      });
-      sel.value = state.lang;
-      sel.addEventListener('change', e=>{
-        state.lang = e.target.value; applyTranslations(); saveState();
+    // --- Utility to Render Locations ---
+    function renderLocations(locations, title = "Nearby Assistance") {
+      listEl.innerHTML = "";
+      locations.forEach((loc) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>${loc.name}</strong> — ${loc.type}`;
+        listEl.appendChild(li);
       });
     }
 
-    function applyTranslations(){
-      document.getElementById('appTitle').textContent = t('title');
-      document.getElementById('appSubtitle').textContent = t('subtitle');
-      document.getElementById('resultsHeader').textContent = t('resultsHeader');
-      document.getElementById('resultsSub').textContent = t('resultsSub');
-      document.getElementById('coursesTitle').textContent = t('coursesTitle');
-      document.getElementById('storiesTitle').textContent = t('storiesTitle');
-      document.getElementById('aboutTitle').textContent = t('aboutTitle');
-      document.getElementById('aboutText').textContent = t('aboutText');
-      // other small text (buttons etc.) are intentionally kept universal to reduce clutter
+    // --- Haversine Distance Function ---
+    function getDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371; // km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(lat1 * Math.PI / 180) *
+                Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     }
 
-    /* ---------------- RENDERING ---------------- */
-    function renderCategoryChips(){
-      const container = document.getElementById('categoryFilters');
-      container.innerHTML = '';
-      const cats = Array.from(new Set(state.resources.map(r => r.category || 'Other'))).filter(Boolean);
-      const allChip = document.createElement('div');
-      allChip.className = 'chip ' + (state.categoryFilter===null ? 'active': '');
-      allChip.textContent = 'All';
-      allChip.onclick = ()=> { state.categoryFilter = null; renderCategoryChips(); renderList(); };
-      container.appendChild(allChip);
-      cats.forEach(cat=>{
-        const el = document.createElement('div');
-        el.className = 'chip ' + (state.categoryFilter===cat ? 'active': '');
-        el.textContent = cat;
-        el.onclick = ()=> { state.categoryFilter = (state.categoryFilter===cat? null: cat); renderCategoryChips(); renderList(); };
-        container.appendChild(el);
-      });
-    }
-
-    function renderList(){
-      const list = document.getElementById('list');
-      list.innerHTML = '';
-      const radiusKm = Number(document.getElementById('radius').value) || state.radiusKm;
-      state.radiusKm = radiusKm;
-      const q = (document.getElementById('q').value || '').toLowerCase().trim();
-      const filtered = state.resources
-        .filter(r=>{
-          if(state.categoryFilter && r.category !== state.categoryFilter) return false;
-          if(q){
-            const hay = (r.name+' '+(r.description||'')+' '+(r.category||'')+' '+(r.phone||'')).toLowerCase();
-            if(!hay.includes(q)) return false;
+    // --- Main Location Handling ---
+    document.getElementById("locateBtn").addEventListener("click", () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const userLat = pos.coords.latitude;
+            const userLon = pos.coords.longitude;
+            const sorted = samplePlaces
+              .map(p => ({ ...p, distance: getDistance(userLat, userLon, p.lat, p.lon) }))
+              .sort((a, b) => a.distance - b.distance)
+              .slice(0, 5);
+            renderLocations(sorted);
+          },
+          () => {
+            alert("Unable to access location. Showing Bangalore default data.");
+            renderLocations(samplePlaces);
           }
-          if(state.userLocation && r.lat!=null && r.lng!=null){
-            const d = distanceKm(state.userLocation.lat, state.userLocation.lng, r.lat, r.lng);
-            return d <= radiusKm;
-          }
-          return true;
-        })
-        .map(r=>{
-          if(state.userLocation && r.lat!=null && r.lng!=null){
-            r._distance = distanceKm(state.userLocation.lat,state.userLocation.lng, r.lat, r.lng);
-          } else r._distance = null;
-          return r;
-        })
-        .sort((a,b)=> (a._distance||99999) - (b._distance||99999));
-
-      if(filtered.length===0){
-        const no = document.createElement('div'); no.className='small'; no.textContent = 'No resources found. Try expanding the radius or add a resource.';
-        list.appendChild(no); return;
-      }
-
-      filtered.forEach(r=>{
-        const item = document.createElement('div'); item.className='list-item';
-        const icon = document.createElement('div'); icon.className='icon';
-        icon.textContent = (r.category||'?').slice(0,2).toUpperCase();
-        const meta = document.createElement('div'); meta.className='meta';
-        const h = document.createElement('h3'); h.textContent = r.name + (r.verified ? ' ✓' : ' (unverified)');
-        const p = document.createElement('p'); p.textContent = r.description || '';
-        meta.appendChild(h); meta.appendChild(p);
-        if(r.phone){
-          const phone = document.createElement('div'); phone.style.marginTop='8px';
-          phone.innerHTML = `<span class="small">Phone: </span><a class="small" href="tel:${r.phone.replace(/\s/g,'')}">${r.phone}</a>`;
-          meta.appendChild(phone);
-        }
-        if(r._distance!=null){
-          const dspan = document.createElement('div'); dspan.className='distance'; dspan.textContent = (Math.round(r._distance*10)/10) + ' km';
-          meta.appendChild(dspan);
-        }
-        const actions = document.createElement('div'); actions.className='actions';
-        const nav = document.createElement('button'); nav.className='pill'; nav.textContent='Directions';
-        nav.onclick = ()=> {
-          if(r.lat!=null && r.lng!=null){
-            const url = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
-            window.open(url, '_blank');
-          } else {
-            alert('Location not available for this resource. Try adding a lat,lng or search the organisation name.');
-          }
-        };
-        actions.appendChild(nav);
-
-        // Option: mark as verified (demo only) - admin would do this in production
-        if(!r.verified){
-          const verifyBtn = document.createElement('button'); verifyBtn.className='btn ghost'; verifyBtn.textContent='Mark Verified';
-          verifyBtn.onclick = ()=> {
-            if(confirm('Mark as verified locally? (In production this requires admin verification)')){
-              r.verified = true; saveState(); renderList(); renderCategoryChips(); renderExtras();
-            }
-          };
-          actions.appendChild(verifyBtn);
-        }
-
-        item.appendChild(icon); item.appendChild(meta); item.appendChild(actions);
-        list.appendChild(item);
-      });
-    }
-
-    function renderExtras(){
-      const courses = document.getElementById('courses'); courses.innerHTML='';
-      state.courses.forEach(c=>{
-        const el = document.createElement('div'); el.className='list-item';
-        el.innerHTML = `<div style="flex:1"><strong>${c.title}</strong><div class="small">${c.provider} — ${c.description}</div></div>
-                        <div style="display:flex;align-items:center"><a class="pill" href="${c.link}" target="_blank" rel="noopener">Open</a></div>`;
-        courses.appendChild(el);
-      });
-
-      const stories = document.getElementById('stories'); stories.innerHTML='';
-      state.stories.forEach(s=>{
-        const el = document.createElement('div'); el.className='testimonial'; el.textContent = s.text;
-        stories.appendChild(el);
-      });
-
-      document.getElementById('serviceCount').textContent = state.resources.length;
-      document.getElementById('courseCount').textContent = state.courses.length;
-      document.getElementById('storiesCount').textContent = state.stories.length;
-    }
-
-    /* ---------------- FORMS ---------------- */
-    function setupAddForm(){
-      const form = document.getElementById('addForm');
-      form.addEventListener('submit', e=>{
-        e.preventDefault();
-        const name = document.getElementById('r_name').value.trim(); if(!name) return alert('Name required');
-        const phone = document.getElementById('r_phone').value.trim();
-        const category = document.getElementById('r_category').value.trim() || 'Other';
-        const loc = document.getElementById('r_location').value.trim();
-        let lat=null,lng=null;
-        if(loc){
-          const parts = loc.split(',').map(x=>Number(x.trim()));
-          if(parts.length===2 && !isNaN(parts[0]) && !isNaN(parts[1])){
-            lat=parts[0]; lng=parts[1];
-          }
-        }
-        const description = document.getElementById('r_description').value.trim();
-        const id = uid('r');
-        const resource = {id, name, phone, category, lat, lng, description, verified:false};
-        state.resources.push(resource);
-        saveState();
-        form.reset();
-        renderCategoryChips(); renderList(); renderExtras();
-        alert('Resource added locally. It will appear as unverified until admin verification.');
-      });
-
-      document.getElementById('addSample').onclick = ()=>{
-        state.resources.push({
-          id:uid('r'),
-          name:'Volunteer Language Hub', phone:'+91 80 4000 7000', category:'Education', lat:13.011, lng:77.555,
-          description:'Volunteer tutors for language practice. Languages: multiple.', verified:true
-        });
-        saveState(); renderCategoryChips(); renderList(); renderExtras();
-      };
-    }
-
-    /* ---------------- LOCATION ---------------- */
-    function useGeolocation(){
-      if(!navigator.geolocation) return alert('Geolocation not supported by your browser.');
-      navigator.geolocation.getCurrentPosition(pos=>{
-        state.userLocation = {lat: pos.coords.latitude, lng: pos.coords.longitude};
-        document.getElementById('manualLocation').value = `${state.userLocation.lat.toFixed(6)},${state.userLocation.lng.toFixed(6)}`;
-        renderList();
-      }, err=>{
-        alert('Unable to fetch location: ' + (err.message || err.code));
-      }, {enableHighAccuracy:true, timeout:10000});
-    }
-
-    function manualLocationToState(){
-      const v = document.getElementById('manualLocation').value.trim();
-      if(!v){ state.userLocation = null; renderList(); return; }
-      // If user supplied "city name", optionally attempt geocoding? For prototype we accept lat,lng only.
-      const parts = v.split(',').map(x=>Number(x.trim()));
-      if(parts.length===2 && !isNaN(parts[0]) && !isNaN(parts[1])){
-        state.userLocation = {lat:parts[0], lng:parts[1]};
-        renderList();
+        );
       } else {
-        // attempt simple support: common city shortcuts (Delhi, Mumbai, Bangalore etc.)
-        const cityMap = {
-          'delhi': {lat:28.6139, lng:77.2090},
-          'new delhi': {lat:28.6139, lng:77.2090},
-          'mumbai': {lat:19.0760, lng:72.8777},
-          'bangalore': {lat:12.9716, lng:77.5946},
-          'bengaluru': {lat:12.9716, lng:77.5946},
-          'chennai': {lat:13.0827, lng:80.2707},
-          'kolkata': {lat:22.5726, lng:88.3639}
-        };
-        const key = v.toLowerCase();
-        if(cityMap[key]){ state.userLocation = cityMap[key]; renderList(); }
-        else alert('Enter location as "lat,lng" or a major city name (e.g. Delhi).');
+        alert("Geolocation not supported on this device.");
       }
-    }
+    });
 
-    /* ---------------- IMPORT / EXPORT ---------------- */
-    function exportJSON(){
-      const payload = { resources: state.resources, courses: state.courses, stories: state.stories, lang: state.lang };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = 'harbour_light_data.json'; document.body.appendChild(a); a.click();
-      setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 5000);
-    }
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      renderLocations(samplePlaces);
+    });
 
-    function importJSONFile(file){
-      const reader = new FileReader();
-      reader.onload = e=>{
-        try {
-          const parsed = JSON.parse(e.target.result);
-          if(parsed.resources) state.resources = parsed.resources;
-          if(parsed.courses) state.courses = parsed.courses;
-          if(parsed.stories) state.stories = parsed.stories;
-          if(parsed.lang) state.lang = parsed.lang;
-          saveState(); renderAll();
-          alert('Import successful. Data merged locally.');
-        } catch(err){
-          alert('Failed to import JSON: ' + err.message);
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    /* ---------------- UI SETUP ---------------- */
-    function setupUI(){
-      populateLangSelector();
-      applyTranslations();
-      renderCategoryChips();
-      renderExtras();
-      renderList();
-
-      document.getElementById('useLocation').addEventListener('click', useGeolocation);
-      document.getElementById('manualLocation').addEventListener('change', manualLocationToState);
-      document.getElementById('searchBtn').addEventListener('click', renderList);
-      document.getElementById('q').addEventListener('keyup', (e)=>{ if(e.key==='Enter') renderList(); });
-      document.getElementById('radius').addEventListener('change', renderList);
-      document.getElementById('clearLocation').addEventListener('click', ()=>{ state.userLocation = null; document.getElementById('manualLocation').value=''; renderList(); });
-
-      document.getElementById('resetData').addEventListener('click', resetDemo);
-      document.getElementById('exportBtn').addEventListener('click', exportJSON);
-      document.getElementById('importBtn').addEventListener('click', ()=> document.getElementById('fileInput').click());
-      document.getElementById('fileInput').addEventListener('change', (e)=> {
-        const f = e.target.files && e.target.files[0]; if(f) importJSONFile(f);
-      });
-
-      setupAddForm();
-
-      // bottom nav
-      document.querySelectorAll('.nav-btn').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
-          btn.classList.add('active');
-          const panel = btn.dataset.panel;
-          // toggling panels by focusing places in UI
-          if(panel==='add'){ document.getElementById('r_name').focus(); window.scrollTo({top:0,behavior:'smooth'}) }
-          if(panel==='stories'){ window.scrollTo({top: document.getElementById('stories').offsetTop - 40, behavior:'smooth'}) }
-          if(panel==='settings'){ document.getElementById('settingsBtn').focus(); window.scrollTo({top: document.body.scrollHeight, behavior:'smooth'}) }
-        });
-      });
-
-      document.getElementById('settingsBtn').addEventListener('click', ()=> {
-        const confirmReset = confirm('Open settings menu:\nOK = Export data to JSON now\nCancel = Reset local data to defaults?');
-        if(confirmReset) exportJSON(); else resetDemo();
-      });
-
-      // quick keyboard help: press L for location hint
-      window.addEventListener('keydown', (e)=>{ if(e.key.toLowerCase()==='l') alert('Hint: click "Use My Location" or enter lat,lng in the box.'); });
-    }
-
-    /* ---------------- RESET / INIT ---------------- */
-    function resetDemo(){
-      if(!confirm('Reset local data to defaults? This will remove locally saved resources and replace with sample data.')) return;
-      localStorage.removeItem('harbour_state');
-      loadState(); renderAll();
-    }
-
-    function renderAll(){
-      applyTranslations(); populateLangSelector(); renderCategoryChips(); renderExtras(); renderList();
-    }
-
-    /* ---------------- BOOTSTRAP ---------------- */
-    (function init(){
-      loadState();
-      // prefer system locale mapping if available
-      const sys = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
-      const langMap = { 'hi':'hi', 'en':'en', 'kn':'kn', 'ta':'ta', 'ml':'ml', 'ur':'ur' };
-      if(!state.lang){
-        state.lang = 'en';
-      }
-      // try set to matched language if user's locale matches
-      Object.keys(langMap).forEach(code=> { if(sys.startsWith(code) && !state.lang) state.lang = code; });
-      // default demo user location to New Delhi if none
-      if(!state.userLocation) state.userLocation = {lat:28.6139, lng:77.2090};
-      setupUI();
-      // Expose for debugging (dev only)
-      window.HarbourLight = { state, saveState, loadState, renderAll, distanceKm };
-    })();
+    // --- Initialize with Bangalore Defaults ---
+    renderLocations(samplePlaces);
   </script>
 </body>
 </html>
