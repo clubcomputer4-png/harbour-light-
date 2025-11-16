@@ -59,6 +59,13 @@
       </div>
 
       <div class="controls">
+      <select id="langSelect" style="padding:0.7rem 1rem;border-radius:8px;border:1px solid #ccc;font-size:1rem;cursor:pointer;">
+        <option value="en">English</option>
+        <option value="kn">Kannada</option>
+        <option value="ur">Urdu</option>
+        <option value="ta">Tamil</option>
+        <option value="ml">Malayalam</option>
+      </select>
         <select id="lang" class="lang" title="Language">
           <option value="en">English</option>
           <option value="ur">اردو (Urdu)</option>
@@ -305,6 +312,21 @@ self.addEventListener('fetch', event => { event.respondWith(caches.match(event.r
     /* ---------------------- initial render ---------------------- */
     renderList(places); clusterAndRender(places); applyLang('en');
     window._app={places,loadPlaces,savePlaces,renderList,clusterAndRender};
+  
+  <script>
+    const LANG = {
+      en:{nearby:"Nearby Assistance (Auto-Generated)"},
+      kn:{nearby:"ಸಮೀಪದ ಸಹಾಯ (ಸ್ವಯಂ-ಉತ್ಪಾದಿತ)"},
+      ur:{nearby:"قریب کی امداد (خود کار)"},
+      ta:{nearby:"அருகிலுள்ள உதவி (தானியங்கு)"},
+      ml:{nearby:"അടുത്തുള്ള സഹായം (സ്വയമേ)"}
+    };
+    document.getElementById('langSelect').addEventListener('change',e=>{
+      document.querySelector('h2').textContent = LANG[e.target.value].nearby;
+    });
   </script>
 </body>
 </html>
+</body>
+</html>
+
