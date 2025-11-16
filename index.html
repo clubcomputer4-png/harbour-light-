@@ -3,85 +3,89 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Bangalore Relief & Assistance Map — Interactive Earth (White Theme)</title>
-<meta name="description" content="Humanitarian map — interactive globe, offline save, CSV import/export, moderation, multi-language." />
+<title>Bangalore Relief — Sleek Globe (White Theme)</title>
+<meta name="description" content="Single-file humanitarian tool — offline save, CSV import/export, moderation, multi-language, minimal vector globe." />
 <style>
   :root{
     --bg:#ffffff;
     --card:#f7f7f7;
-    --primary:#0a84ff;
+    --accent:#0a84ff; /* blue accent */
     --muted:#111;
-    --glass:rgba(255,255,255,0.95);
     --muted-2:#666;
+    --glass:rgba(255,255,255,0.95);
   }
   [data-theme="dark"]{
     --bg:#0d0d0d;
-    --card:#1a1a1a;
-    --primary:#0a84ff;
+    --card:#141414;
+    --accent:#0a84ff;
     --muted:#e6e6e6;
-    --glass:rgba(255,255,255,0.06);
     --muted-2:#bbb;
+    --glass:rgba(255,255,255,0.04);
   }
+
   *{box-sizing:border-box;margin:0;padding:0;font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif}
   html,body{height:100%}
-  body{background:var(--bg);color:var(--muted);line-height:1.6;padding-bottom:110px}
+  body{background:var(--bg);color:var(--muted);line-height:1.6;padding-bottom:110px;-webkit-font-smoothing:antialiased}
 
-  header{
-    background:linear-gradient(90deg,#ffffff,#f3f7ff);
-    color:var(--muted);
-    padding:20px 18px;text-align:center;border-bottom:1px solid #eee;
-  }
-  header h1{font-size:22px;margin-bottom:6px}
-  header p{opacity:.9;color:var(--muted-2);max-width:920px;margin:0 auto}
+  header{background:#fff;color:var(--muted);padding:18px;border-bottom:1px solid #eee;text-align:center}
+  header h1{font-size:20px;margin-bottom:6px}
+  header p{opacity:.9;color:var(--muted-2);max-width:920px;margin:0 auto;font-size:0.95rem}
 
   main{max-width:1200px;margin:22px auto;padding:0 18px}
-  .top-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  .top-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:12px}
   .controls{display:flex;gap:12px;align-items:center}
-  .btn{background:var(--primary);color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+  .btn{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
   .btn.ghost{background:transparent;border:1px solid rgba(0,0,0,0.08);color:var(--muted)}
   .search-wrap{flex:1;display:flex;align-items:center;gap:8px}
-  .search{flex:1;padding:10px 12px;border-radius:8px;border:1px solid #e6e6e9;background:var(--glass)}
-  .layout{display:grid;grid-template-columns:380px 1fr;gap:18px;margin-top:18px}
+  input.search{flex:1;padding:10px 12px;border-radius:8px;border:1px solid #e6e6e9;background:var(--glass);outline:none}
+  input.search:focus{box-shadow:0 0 0 3px rgba(10,132,255,0.12);border-color:var(--accent)}
+
+  .layout{display:grid;grid-template-columns:380px 1fr;gap:18px}
   .panel{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.04)}
-  .panel h2{color:#000;margin-bottom:10px}
+  .panel h2{color:#000;margin-bottom:10px;font-size:1.1rem}
   .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
   .chip{padding:8px 10px;border-radius:999px;background:transparent;border:1px solid #ddd;cursor:pointer}
-  .chip.active{background:var(--primary);color:white;border-color:var(--primary)}
+  .chip.active{background:var(--accent);color:white;border-color:var(--accent)}
   .list{max-height:420px;overflow:auto;padding-right:6px}
-  .place{padding:10px;border-radius:8px;margin-bottom:8px;background:#fff;border:1px solid #eee}
+  .place{padding:10px;border-radius:8px;margin-bottom:8px;background:#fff;border:1px solid #eee;cursor:pointer}
   .place strong{display:block;color:#000}
-  .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#f0f4ff;font-size:12px;margin-left:8px;color:var(--primary)}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#f0f7ff;font-size:12px;margin-left:8px;color:var(--accent)}
+
   .map-wrap{display:flex;flex-direction:column;gap:12px}
-  .map{
-    background:#fff;border-radius:12px;height:520px;display:flex;align-items:center;justify-content:center;position:relative;border:1px solid #e6e6e6;overflow:hidden;
-  }
-  #globeCanvas{width:100%;height:100%;display:block}
+  .map{background:#fff;border-radius:12px;height:520px;display:flex;align-items:center;justify-content:center;position:relative;border:1px solid #e6e6e6;overflow:hidden}
+  canvas#globe{width:100%;height:100%;display:block}
+  #markersOverlay{position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none} /* overlay doesn't block clicks */
+  .marker-dot{position:absolute;width:12px;height:12px;border-radius:999px;background:var(--accent);box-shadow:0 0 8px rgba(10,132,255,0.28);transform:translate(-50%,-50%);pointer-events:auto;border:2px solid #fff}
+
   .details{background:var(--card);padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.06)}
-  footer{position:fixed;left:0;right:0;bottom:0;background:#ffffff;color:var(--muted);padding:12px 18px;text-align:center;border-top:1px solid #eee}
+  footer{position:fixed;left:0;right:0;bottom:0;background:#fff;color:var(--muted);padding:12px 18px;text-align:center;border-top:1px solid #eee;font-size:0.95rem}
+
   .lang{padding:8px;border-radius:8px;border:1px solid #ccc;background:#fff}
   @media(max-width:1000px){.layout{grid-template-columns:1fr}.map{height:420px}.list{max-height:220px}}
   details{margin-top:10px}summary{font-weight:600;cursor:pointer}
+
   .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;z-index:1200}
   .modal .panel-inner{background:var(--card);padding:18px;border-radius:12px;max-width:560px;width:100%}
   textarea.import-area{width:100%;min-height:100px;border-radius:8px;border:1px dashed #ddd;padding:8px;background:#fff}
   .small-muted{font-size:0.9rem;color:var(--muted-2)}
-  .marker-dot{position:absolute;width:10px;height:10px;border-radius:999px;background:var(--primary);box-shadow:0 0 6px rgba(10,132,255,0.4);transform:translate(-50%,-50%);pointer-events:auto}
+  a { color:var(--accent); text-decoration: none;}
+  a:hover { text-decoration: underline; }
 </style>
 </head>
 <body data-theme="light">
   <header>
-    <h1>Bangalore Relief & Assistance — Interactive Globe</h1>
-    <p class="small-muted">Sleek white theme. Drag the globe to rotate, wheel to zoom. Add reports, export/import CSV, moderate data, save offline.</p>
+    <h1>Bangalore Relief — Sleek Globe</h1>
+    <p class="small-muted">Minimal vector globe. Drag to rotate, mousewheel to zoom. Click markers or list items to center. Local-only storage & CSV import/export included.</p>
   </header>
 
   <main>
     <div class="top-row">
       <div class="search-wrap">
         <input id="searchInput" class="search" placeholder="Search places, e.g., hospital, shelter..." aria-label="Search" />
-        <button id="searchBtn" class="btn">Search</button>
+        <button id="searchBtn" class="btn" type="button">Search</button>
       </div>
 
-      <div class="controls">
+      <div class="controls" role="group" aria-label="Controls">
         <select id="lang" class="lang" title="Language" aria-label="Language selector">
           <option value="en">English</option>
           <option value="ur">اردو (Urdu)</option>
@@ -89,32 +93,31 @@
           <option value="ml">മലയാളം (Malayalam)</option>
           <option value="kn">ಕನ್ನಡ (Kannada)</option>
         </select>
-
-        <button id="themeToggle" class="btn ghost" aria-pressed="false">Dark</button>
-        <button id="locateBtn" class="btn">Use My Location</button>
-        <button id="resetBtn" class="btn ghost">Reset</button>
+        <button id="themeToggle" class="btn ghost" aria-pressed="false" type="button">Dark</button>
+        <button id="locateBtn" class="btn" type="button">Use My Location</button>
+        <button id="resetBtn" class="btn ghost" type="button">Reset</button>
       </div>
     </div>
 
-    <div class="layout">
+    <div class="layout" aria-live="polite">
       <aside class="panel" aria-label="Left panel">
         <h2 id="leftTitle">Nearby Assistance</h2>
 
         <div class="filters" role="tablist" aria-label="Filters">
-          <button class="chip active" data-type="all">All</button>
-          <button class="chip" data-type="Food Aid">Food</button>
-          <button class="chip" data-type="Shelter">Shelter</button>
-          <button class="chip" data-type="Medical Help">Medical</button>
-          <button class="chip" data-type="NGO Support">NGO</button>
-          <button class="chip" data-type="pending">Pending</button>
+          <button class="chip active" data-type="all" role="tab">All</button>
+          <button class="chip" data-type="Food Aid" role="tab">Food</button>
+          <button class="chip" data-type="Shelter" role="tab">Shelter</button>
+          <button class="chip" data-type="Medical Help" role="tab">Medical</button>
+          <button class="chip" data-type="NGO Support" role="tab">NGO</button>
+          <button class="chip" data-type="pending" role="tab">Pending</button>
         </div>
 
         <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-          <button id="addPlaceBtn" class="btn">Add Report</button>
-          <button id="saveBtn" class="btn ghost">Save Offline</button>
-          <button id="exportBtn" class="btn ghost">Export CSV</button>
-          <button id="importBtn" class="btn ghost">Import CSV</button>
-          <button id="adminOpen" class="btn ghost">Moderation</button>
+          <button id="addPlaceBtn" class="btn" type="button">Add Report</button>
+          <button id="saveBtn" class="btn ghost" type="button">Save Offline</button>
+          <button id="exportBtn" class="btn ghost" type="button">Export CSV</button>
+          <button id="importBtn" class="btn ghost" type="button">Import CSV</button>
+          <button id="adminOpen" class="btn ghost" type="button">Moderation</button>
         </div>
 
         <div class="list" id="placesList" aria-live="polite"></div>
@@ -122,7 +125,7 @@
         <details>
           <summary id="unwrittenSummary">Unwritten — Cultural Notes</summary>
           <div style="margin-top:8px">
-            <ul id="unwrittenList">
+            <ul id="unwrittenList" class="small-muted">
               <li>Shops in Paris close early on Sundays.</li>
               <li>In Japan, avoid phone calls on public transport.</li>
               <li>In India, bargaining in small markets is expected.</li>
@@ -133,25 +136,23 @@
 
       <section class="map-wrap" aria-label="Map area">
         <div class="map" id="map">
-          <!-- Canvas globe -->
-          <canvas id="globeCanvas" width="700" height="700" aria-label="Interactive globe"></canvas>
-          <!-- Markers container (DOM) for small UI dots if needed -->
-          <div id="markersOverlay" style="position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none"></div>
+          <canvas id="globe" width="800" height="800" aria-label="Interactive globe"></canvas>
+          <div id="markersOverlay"></div>
         </div>
 
-        <div class="details" id="placeDetails">
+        <div class="details" id="placeDetails" aria-live="polite">
           <strong id="detailName">Select a place</strong>
           <div id="detailType" style="margin-top:6px;color:var(--muted-2)"></div>
           <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-            <button id="directionsBtn" class="btn ghost">Copy Coordinates</button>
-            <button id="verifyBtn" class="btn ghost">Mark Verified</button>
-            <button id="reportBtn" class="btn">Report Issue</button>
+            <button id="directionsBtn" class="btn ghost" type="button">Copy Coordinates</button>
+            <button id="verifyBtn" class="btn ghost" type="button">Mark Verified</button>
+            <button id="reportBtn" class="btn" type="button">Report Issue</button>
           </div>
         </div>
       </section>
     </div>
 
-    <!-- add place modal -->
+    <!-- Add modal -->
     <div id="modal" class="modal" aria-hidden="true">
       <div class="panel-inner" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <h3 id="modalTitle">Add a Relief Place</h3>
@@ -166,28 +167,35 @@
           <input id="pLat" placeholder="Latitude (e.g. 12.9716)" style="padding:10px;border-radius:8px;border:1px solid #eee" />
           <input id="pLon" placeholder="Longitude (e.g. 77.5946)" style="padding:10px;border-radius:8px;border:1px solid #eee" />
           <div style="display:flex;gap:8px;justify-content:flex-end">
-            <button id="cancelAdd" class="btn ghost">Cancel</button>
-            <button id="confirmAdd" class="btn">Add</button>
+            <button id="cancelAdd" class="btn ghost" type="button">Cancel</button>
+            <button id="confirmAdd" class="btn" type="button">Add</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- moderation/admin modal -->
+    <!-- Admin modal -->
     <div id="adminModal" class="modal" aria-hidden="true">
       <div class="panel-inner" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
         <h3 id="adminTitle">Moderation Console</h3>
         <div style="margin:8px 0;">
           <label>Enter Admin Password (stored locally for the session)</label>
-          <div style="display:flex;gap:8px;margin-top:6px"><input id="adminPass" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd" placeholder="password" /><button id="adminLogin" class="btn">Login</button></div>
+          <div style="display:flex;gap:8px;margin-top:6px">
+            <input id="adminPass" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd" placeholder="password" />
+            <button id="adminLogin" class="btn" type="button">Login</button>
+          </div>
         </div>
-        <div id="adminControls" class="admin-controls" aria-hidden="true">
-          <div style="display:flex;gap:8px;margin-bottom:8px"><button id="approveAll" class="btn">Approve All Pending</button><button id="closeAdmin" class="btn ghost">Close</button></div>
+        <div id="adminControls" class="admin-controls" aria-hidden="true" style="display:none">
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <button id="approveAll" class="btn" type="button">Approve All Pending</button>
+            <button id="closeAdmin" class="btn ghost" type="button">Close</button>
+          </div>
           <div style="margin-top:8px">
             <strong>Import CSV (paste rows: name,type,lat,lon,verified)</strong>
-            <textarea id="importArea" class="import-area" placeholder="Name,Type,Lat,Lon,Verified (true/false)
-..."></textarea>
-            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px"><button id="doImport" class="btn">Import</button></div>
+            <textarea id="importArea" class="import-area" placeholder="Name,Type,Lat,Lon,Verified (true/false)\n..."></textarea>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+              <button id="doImport" class="btn" type="button">Import</button>
+            </div>
           </div>
         </div>
       </div>
@@ -195,12 +203,10 @@
 
   </main>
 
-  <footer>
-    Bangalore Relief & Assistance Map — Community Edition
-  </footer>
+  <footer>Bangalore Relief — Community Edition (local-only mode)</footer>
 
 <script>
-/* ====== TRANSLATIONS & DATA ====== */
+/* ===== TRANSLATIONS & DATA ===== */
 const translations = {
   en:{nearby:'Nearby Assistance',searchPlaceholder:'Search places, e.g., hospital, shelter...'},
   ur:{nearby:'قریب موجود امدادی مراکز',searchPlaceholder:'جگہوں میں تلاش کریں، مثلاً اسپتال، شیلٹر...'},
@@ -218,61 +224,39 @@ const defaultPlaces = [
   { name: "St. John's Hospital", type: "Medical Help", lat: 12.9344, lon: 77.6060, verified: true },
   { name: "HSR Layout Community Kitchen", type: "Food Aid", lat: 12.9121, lon: 77.6446, verified: false }
 ];
-const STORAGE_KEY = 'bangalore_relief_places_v3';
+
+const STORAGE_KEY = 'bangalore_relief_places_v_final';
 function loadPlaces(){ try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw) return JSON.parse(raw); }catch(e){ console.warn('loadPlaces', e);} return defaultPlaces.slice(); }
 function savePlaces(list){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); alert('Saved for offline use.'); }catch(e){ alert('Unable to save locally.'); } }
 let places = loadPlaces();
 
-/* ====== SIMPLE SERVICE WORKER (BLOB) ====== */
-const swContents = `const CACHE_NAME='bangalore-relief-cache-v1';self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(['./'])));self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim());});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));});`;
-(function registerSW(){ if('serviceWorker' in navigator){ try{ const blob = new Blob([swContents],{type:'application/javascript'}); const url=URL.createObjectURL(blob); navigator.serviceWorker.register(url).then(()=>console.log('SW registered')).catch(e=>console.warn('SW reg failed',e)); }catch(e){console.warn('SW err',e);} } })();
-
-/* ====== GLOBE RENDER (Canvas orthographic projection) ======
-   - Uses equirectangular Earth texture from NASA (public image)
-   - Drag to rotate, wheel to zoom, double-click to reset
-   - Projects markers (lat/lon) to canvas
-   NOTE: If you need fully offline, I can embed the texture as base64 (file will be large).
-*/
-const canvas = document.getElementById('globeCanvas');
+/* ===== Minimal vector globe (fast) ===== */
+const canvas = document.getElementById('globe');
 const ctx = canvas.getContext('2d', { alpha: true });
-let cw = canvas.width = canvas.clientWidth || 700;
-let ch = canvas.height = canvas.clientHeight || 700;
 
-// texture URLs (public NASA moderate-res). Change if you want different quality.
-// Cloud overlay (optional) and earth texture:
-const TEX = 'https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57730/land_ocean_ice_2048.jpg';
-const CLOUDS = 'https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57730/earthclouds2048.png';
-
-// loaded images:
-const img = new Image();
-img.crossOrigin = 'anonymous';
-img.src = TEX;
-
-const cloudsImg = new Image();
-cloudsImg.crossOrigin = 'anonymous';
-cloudsImg.src = CLOUDS;
-
-let imgReady=false, cloudsReady=false;
-img.onload = ()=>{ imgReady=true; draw(); };
-cloudsImg.onload = ()=>{ cloudsReady=true; draw(); };
-
-// globe state
-let rotation = { lon: 77.5946, lat: 12.9716 }; // initial center near Bangalore (lon,lat)
-let rotLon = 0; // degrees (positive east)
-let rotLat = 0; // tilt (unused for orthographic but keep)
-let scale = 0.95; // 0..1 visible globe fraction
-let dragging = false;
-let lastMouse = null;
-let velocityX = 0;
-let velocityDecay = 0.95;
-
+// ensure retina crispness
 function resizeCanvas(){
-  cw = canvas.width = canvas.clientWidth;
-  ch = canvas.height = canvas.clientHeight;
+  const cssW = canvas.clientWidth || canvas.parentElement.clientWidth;
+  const cssH = canvas.clientHeight || canvas.parentElement.clientHeight;
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = Math.max(300, Math.floor(cssW * ratio));
+  canvas.height = Math.max(300, Math.floor(cssH * ratio));
+  canvas.style.width = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 }
 window.addEventListener('resize', ()=>{ resizeCanvas(); draw(); });
+resizeCanvas();
 
-// convert lat/lon to 3D unit sphere (x,y,z)
+// globe state
+let rotLon = 0;           // degrees (longitude at center, positive east)
+let targetRotLon = 0;
+let scale = 0.9;          // visual scale (0.5..1.5)
+let dragging = false;
+let lastPointer = null;
+let inertia = 0;
+
+// helpers: convert lat/lon to unit vector (x,y,z)
 function latLonToVec(lat, lon){
   const phi = (90 - lat) * Math.PI/180;
   const theta = (lon + 180) * Math.PI/180;
@@ -282,221 +266,211 @@ function latLonToVec(lat, lon){
   return {x,y,z};
 }
 
-// project sphere point to canvas (simple orthographic)
-function projectVec(v, rotDeg, scaleFactor){
-  // rotate around Y by rotDeg (degrees)
-  const a = rotDeg * Math.PI/180;
-  const x = v.x * Math.cos(a) + v.z * Math.sin(a);
-  const z = v.z * Math.cos(a) - v.x * Math.sin(a);
-  const y = v.y;
-  // if z > 0 visible (facing camera), map x,y to canvas
-  return { x: x * scaleFactor, y: y * scaleFactor, z: z };
+// rotate vector around Y axis by degrees
+function rotateY(v, deg){
+  const a = deg * Math.PI/180;
+  return {
+    x: v.x * Math.cos(a) - v.z * Math.sin(a),
+    y: v.y,
+    z: v.z * Math.cos(a) + v.x * Math.sin(a)
+  };
 }
 
-function draw(){
-  if(!imgReady) {
-    // placeholder while texture loads
-    ctx.clearRect(0,0,cw,ch);
-    ctx.fillStyle = '#eef2ff';
-    ctx.fillRect(0,0,cw,ch);
-    ctx.fillStyle = '#999';
-    ctx.font = '16px Inter, Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Loading globe texture...', cw/2, ch/2);
-    return;
-  }
-  ctx.clearRect(0,0,cw,ch);
-  const radius = Math.min(cw, ch) * 0.45 * scale;
-  const cx = cw/2, cy = ch/2;
+// project unit vector to 2D orthographic canvas coords (cx,cy,radius)
+function projectVecToCanvas(v, cx, cy, radius){
+  // visible when z < 0 (camera looking down -Z)
+  if(v.z > 0) return null;
+  const px = cx + v.x * radius;
+  const py = cy - v.y * radius;
+  return {x:px, y:py};
+}
 
-  // draw ocean base (so edges anti-aliased)
+// draw globe (fast)
+function draw(){
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  const cx = w/2, cy = h/2;
+  const radius = Math.min(w, h) * 0.45 * scale;
+
+  ctx.clearRect(0,0,w,h);
+
+  // subtle gradient fill for globe
   ctx.save();
   ctx.beginPath();
-  ctx.arc(cx,cy,radius,0,Math.PI*2);
+  ctx.arc(cx, cy, radius, 0, Math.PI*2);
+  ctx.closePath();
+  ctx.fillStyle = 'linear-gradient' // placeholder, below we'll use radial gradient
+  const grad = ctx.createRadialGradient(cx - radius*0.3, cy - radius*0.4, radius*0.1, cx, cy, radius);
+  grad.addColorStop(0, '#ffffff');
+  grad.addColorStop(0.45, '#f3f7ff');
+  grad.addColorStop(1, '#e6efff');
+  ctx.fillStyle = grad;
+  ctx.fill();
   ctx.clip();
-  ctx.fillStyle = '#0a3a66';
-  ctx.fillRect(cx-radius, cy-radius, radius*2, radius*2);
 
-  // draw the textured globe by sampling from equirectangular image.
-  // We'll render into an offscreen canvas scaled to 1024 to keep performance acceptable.
-  const offRes = 1024;
-  const off = document.createElement('canvas');
-  off.width = offRes; off.height = offRes;
-  const offCtx = off.getContext('2d');
-  // draw the source texture to offscreen (scaled to width:height 2:1)
-  offCtx.drawImage(img, 0, 0, offRes, offRes/2);
+  // simple land approximation: draw faint latitude/longitude grid for orientation
+  ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+  ctx.lineWidth = 1;
+  ctx.globalAlpha = 1.0;
 
-  // we will iterate over pixels of the visible circle at a reasonable step to balance speed
-  const step = Math.max(1, Math.floor(radius/180)); // adjust resolution with radius
-  const imgData = offCtx.getImageData(0,0,off.width,off.height);
-  const iw = off.width, ih = off.height;
-
-  // rotation in degrees
-  const rot = rotLon; // rotLon maintained by drag or inertia
-
-  for(let py = -radius; py <= radius; py += step){
-    const y = py;
-    const ry = y / radius;
-    const lat = Math.asin(ry) * 180/Math.PI * -1; // convert to lat
-    for(let px = -radius; px <= radius; px += step){
-      const x = px;
-      if(x*x + y*y > radius*radius) continue;
-      // compute lon depending on rotation
-      const lon = Math.atan2(x, -y /* camera simple mapping */) * 180/Math.PI; // approximate mapping
-      // Better approach: compute unit vector and map to lat/lon
-      const nx = x / radius;
-      const ny = y / radius;
-      // compute spherical coordinates: using inverse orthographic projection
-      const zsq = 1 - nx*nx - ny*ny;
-      if(zsq < 0) continue;
-      const nz = Math.sqrt(zsq);
-      // rotate back by rot around Y
-      const a = rot * Math.PI/180;
-      const vx = nx * Math.cos(a) - nz * Math.sin(a);
-      const vz = nx * Math.sin(a) + nz * Math.cos(a);
-      const vy = ny;
-      // convert to lat/lon
-      const lat2 = Math.asin(vy) * 180/Math.PI;
-      const lon2 = Math.atan2(vz, vx) * 180/Math.PI;
-      // sample from equirectangular image
-      let u = (lon2 + 180) / 360;
-      let v = (90 - lat2) / 180;
-      // wrap
-      u = u - Math.floor(u);
-      const sx = Math.floor(u * iw);
-      const sy = Math.floor(v * ih);
-      const idx = (sy * iw + sx) * 4;
-      const r = imgData.data[idx], g = imgData.data[idx+1], b = imgData.data[idx+2], a2 = imgData.data[idx+3];
-      ctx.fillStyle = `rgba(${r},${g},${b},${a2/255})`;
-      ctx.fillRect(cx + x, cy + y, step, step);
+  // draw meridians (longitudes)
+  for(let lon=-180; lon<180; lon+=30){
+    ctx.beginPath();
+    const steps = 120;
+    for(let i=0;i<=steps;i++){
+      const lat = -90 + (i/steps)*180;
+      let v = latLonToVec(lat, lon);
+      v = rotateY(v, rotLon);
+      const p = projectVecToCanvas(v, cx, cy, radius);
+      if(!p){ // when meridian crosses back face, break path to avoid drawing across
+        ctx.moveTo(-9999,-9999);
+      } else {
+        if(i===0) ctx.moveTo(p.x,p.y);
+        else ctx.lineTo(p.x,p.y);
+      }
     }
-  }
-  // optional clouds overlay (semi-transparent)
-  if(cloudsReady){
-    // draw clouds aligned with same rotation
-    // draw clouds to offscreen scaled
-    const offC = document.createElement('canvas');
-    offC.width = offRes; offC.height = offRes/2;
-    const offCCtx = offC.getContext('2d');
-    offCCtx.drawImage(cloudsImg, 0, 0, offC.width, offC.height);
-    // set global alpha for subtle clouds
-    ctx.globalAlpha = 0.35;
-    // composite clouds by sampling very roughly: draw the clouds image rotated by same
-    // Simplify: draw the entire clouds image stretched across, then clip to circle and rotate canvas
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(rot * Math.PI/180);
-    ctx.drawImage(cloudsImg, -radius, -radius, radius*2, radius*2);
-    ctx.restore();
-    ctx.globalAlpha = 1.0;
+    ctx.stroke();
   }
 
-  // draw rim
+  // draw parallels (latitudes)
+  for(let lat=-60; lat<=60; lat+=20){
+    ctx.beginPath();
+    const steps = 180;
+    for(let i=0;i<=steps;i++){
+      const lon = -180 + (i/steps)*360;
+      let v = latLonToVec(lat, lon);
+      v = rotateY(v, rotLon);
+      const p = projectVecToCanvas(v, cx, cy, radius);
+      if(!p){ ctx.moveTo(-9999,-9999); } else {
+        if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
+      }
+    }
+    ctx.stroke();
+  }
+
+  // subtle rim
   ctx.beginPath();
-  ctx.arc(cx,cy,radius,0,Math.PI*2);
-  ctx.lineWidth = Math.max(2, Math.round(radius*0.03));
+  ctx.arc(cx, cy, radius, 0, Math.PI*2);
+  ctx.lineWidth = Math.max(2, radius*0.02);
   ctx.strokeStyle = 'rgba(0,0,0,0.06)';
   ctx.stroke();
+
   ctx.restore();
 
-  // draw markers projected (only those with visible hemisphere)
-  drawMarkersOnGlobe(cx,cy,radius,rot);
+  // draw shaded hemisphere highlight (simple)
+  ctx.save();
+  const grad2 = ctx.createRadialGradient(cx - radius*0.3, cy - radius*0.4, radius*0.1, cx, cy, radius);
+  grad2.addColorStop(0, 'rgba(255,255,255,0.18)');
+  grad2.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = grad2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // render DOM marker dots (overlay)
+  renderMarkersOverlay(cx, cy, radius);
 }
 
-// Project lat/lon to canvas coordinates for orthographic view given rotation (degrees)
-function projectLatLonToCanvas(lat, lon, cx, cy, radius, rotDeg){
-  // convert lat/lon to 3D
-  const phi = (90 - lat) * Math.PI/180;
-  const theta = (lon + 180) * Math.PI/180;
-  let x = Math.sin(phi) * Math.cos(theta);
-  let y = Math.cos(phi);
-  let z = Math.sin(phi) * Math.sin(theta);
-  // rotate around Y by -rotDeg (since globe rotated to show rotDeg lon at center)
-  const a = -rotDeg * Math.PI/180;
-  const xr = x * Math.cos(a) - z * Math.sin(a);
-  const zr = z * Math.cos(a) + x * Math.sin(a);
-  // orthographic projection: visible if zr < 0 (facing camera)
-  if(zr > 0) return null; // behind globe
-  const px = cx + xr * radius;
-  const py = cy - y * radius;
-  return {x:px,y:py};
-}
-
-function drawMarkersOnGlobe(cx,cy,radius,rot){
-  // remove DOM marker dots and redraw
+// markers overlay: place DOM elements for fast interaction (pointer-events enabled)
+function renderMarkersOverlay(cx, cy, radius){
   const overlay = document.getElementById('markersOverlay');
-  overlay.innerHTML = '';
-  places.forEach(p=>{
-    const pt = projectLatLonToCanvas(p.lat, p.lon, cx, cy, radius, rot);
-    if(pt){
-      // create small dot
-      const dot = document.createElement('div');
-      dot.className = 'marker-dot';
-      dot.style.left = pt.x + 'px';
-      dot.style.top = pt.y + 'px';
-      dot.title = p.name;
-      dot.style.pointerEvents = 'auto';
-      dot.addEventListener('click', (e)=>{ e.stopPropagation(); selectPlace(p); });
-      overlay.appendChild(dot);
-    }
+  overlay.innerHTML = ''; // clear
+  places.forEach((p, idx)=>{
+    const v = latLonToVec(p.lat, p.lon);
+    const vRot = rotateY(v, rotLon);
+    // visible if z <= 0 (facing camera)
+    if(vRot.z > 0) return;
+    const pos = projectVecToCanvas(vRot, cx, cy, radius);
+    if(!pos) return;
+    const dot = document.createElement('div');
+    dot.className = 'marker-dot';
+    dot.title = p.name;
+    dot.style.left = pos.x + 'px';
+    dot.style.top = pos.y + 'px';
+    // show different style when verified false
+    if(!p.verified) dot.style.background = '#ff8c42';
+    // ensure marker receives pointer events
+    dot.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      selectPlace(p);
+    });
+    overlay.appendChild(dot);
   });
 }
 
-/* ==== interaction: drag to rotate, wheel to zoom, double click to reset ==== */
+/* === Interaction: pointer drag, wheel zoom, dblclick reset === */
 canvas.addEventListener('pointerdown', (e)=>{
   dragging = true;
-  lastMouse = {x:e.clientX, y:e.clientY};
+  lastPointer = {x: e.clientX, y: e.clientY};
   canvas.setPointerCapture(e.pointerId);
 });
+
 canvas.addEventListener('pointermove', (e)=>{
   if(!dragging) return;
-  const dx = e.clientX - lastMouse.x;
-  // horizontal movement changes rotation
-  rotLon += dx * 0.3; // sensitivity
-  lastMouse = {x:e.clientX, y:e.clientY};
-  velocityX = dx * 0.3;
+  const dx = e.clientX - lastPointer.x;
+  // update rotation (sensitivity tuned)
+  rotLon += dx * 0.35;
+  inertia = dx * 0.35;
+  lastPointer = {x: e.clientX, y: e.clientY};
+  // redraw immediately for snappy feel
   draw();
 });
-canvas.addEventListener('pointerup', (e)=>{ dragging = false; lastMouse = null; });
-canvas.addEventListener('pointerleave', ()=>{ dragging=false; lastMouse=null; });
+
+canvas.addEventListener('pointerup', (e)=>{
+  dragging = false;
+  lastPointer = null;
+});
+
+canvas.addEventListener('pointercancel', ()=>{ dragging = false; lastPointer = null; });
+
 canvas.addEventListener('wheel', (e)=>{
   e.preventDefault();
-  scale *= (1 - e.deltaY * 0.001);
-  scale = Math.min(1.5, Math.max(0.5, scale));
+  scale *= (1 - e.deltaY * 0.0011);
+  scale = Math.max(0.6, Math.min(1.4, scale));
+  draw();
+}, {passive: false});
+
+canvas.addEventListener('dblclick', ()=>{
+  rotLon = 0;
+  scale = 0.9;
   draw();
 });
-canvas.addEventListener('dblclick', ()=>{
-  rotLon = 0; scale = 0.95; draw();
-});
 
-// simple inertial spin when not dragging
-function tick(){
+// inertial animation + render loop
+function animate(){
+  // inertia decay
   if(!dragging){
-    if(Math.abs(velocityX) > 0.01){
-      rotLon += velocityX;
-      velocityX *= velocityDecay;
-      draw();
+    if(Math.abs(inertia) > 0.0005){
+      rotLon += inertia;
+      inertia *= 0.92;
+    } else {
+      inertia = 0;
     }
   }
-  requestAnimationFrame(tick);
+  draw();
+  requestAnimationFrame(animate);
 }
-tick();
+animate(); // start
 
-/* ====== UI: list, search, filters, add, import/export, admin ====== */
+/* ===== UI list, search, filter, select ===== */
 const placesListEl = document.getElementById('placesList');
 const searchInput = document.getElementById('searchInput');
 
 function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
 
 function renderList(list){
-  placesListEl.innerHTML='';
-  if(!list.length){ placesListEl.innerHTML = '<div style="padding:12px;color:var(--muted-2)">No results</div>'; return; }
-  list.forEach(p=>{
+  placesListEl.innerHTML = '';
+  if(!list || list.length === 0){
+    placesListEl.innerHTML = '<div style="padding:12px;color:var(--muted-2)">No results</div>';
+    return;
+  }
+  list.forEach((p,i)=>{
     const div = document.createElement('div');
-    div.className='place';
-    const badge = p.verified? '<span class="badge">Verified</span>' : '<span class="badge" style="background:#fff4ea;color:#c47a00">Pending</span>';
+    div.className = 'place';
+    const badge = p.verified ? '<span class="badge">Verified</span>' : '<span class="badge" style="background:#fff4ea;color:#c47a00">Pending</span>';
     div.innerHTML = `<strong>${escapeHtml(p.name)}</strong> ${badge}<small style="display:block;color:var(--muted-2)">${escapeHtml(p.type)} • ${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}</small>`;
-    div.addEventListener('click', ()=> { selectPlace(p); });
+    div.addEventListener('click', ()=> selectPlace(p));
     placesListEl.appendChild(div);
   });
 }
@@ -504,37 +478,64 @@ function renderList(list){
 function selectPlace(p){
   document.getElementById('detailName').textContent = p.name;
   document.getElementById('detailType').textContent = p.type + ' • ' + p.lat + ', ' + p.lon;
+  // center globe: rotLon such that place.lon is centered (-lon)
+  // animate rotation smoothly
+  const from = rotLon;
+  const to = -p.lon;
+  const diff = ((to - from + 540) % 360) - 180; // shortest angle
+  const duration = 420;
+  const start = performance.now();
+  function anim(now){
+    const t = Math.min(1, (now - start)/duration);
+    const ease = 0.5 - 0.5*Math.cos(Math.PI * t);
+    rotLon = from + diff * ease;
+    draw();
+    if(t < 1) requestAnimationFrame(anim);
+  }
+  requestAnimationFrame(anim);
+
   document.getElementById('verifyBtn').onclick = ()=>{ p.verified=true; savePlaces(places); renderList(places); draw(); alert('Marked verified locally.'); };
   document.getElementById('directionsBtn').onclick = ()=>{ if(navigator.clipboard) navigator.clipboard.writeText(p.lat+','+p.lon).then(()=>alert('Coordinates copied')); };
-  // animate globe so that the place becomes centered
-  // set rotLon so that place.lon is at center (rotLon = -lon)
-  rotLon = -p.lon;
-  draw();
 }
 
+/* filter & search */
 function filterAndRender(){
-  const q = searchInput.value.trim().toLowerCase();
+  const q = (searchInput.value || '').trim().toLowerCase();
   const activeChip = document.querySelector('.chip.active');
   const type = activeChip ? activeChip.getAttribute('data-type') : 'all';
   let out = places.filter(p => (type === 'all' || (type === 'pending' ? !p.verified : p.type === type)));
   if(q) out = out.filter(p => (p.name.toLowerCase().includes(q) || (p.type||'').toLowerCase().includes(q)));
   renderList(out);
-  draw();
+}
+document.getElementById('searchBtn').addEventListener('click', filterAndRender);
+searchInput.addEventListener('keyup', (e)=>{ if(e.key === 'Enter') filterAndRender(); });
+document.querySelectorAll('.chip').forEach(ch=> ch.addEventListener('click', ()=>{
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  ch.classList.add('active');
+  filterAndRender();
+}));
+
+/* location & reset */
+document.getElementById('resetBtn').addEventListener('click', ()=>{ places = loadPlaces(); renderList(places); draw(); });
+document.getElementById('locateBtn').addEventListener('click', ()=> {
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const lat = pos.coords.latitude, lon = pos.coords.longitude;
+      // center globe
+      rotLon = -lon;
+      // sort list by distance and show
+      const sorted = places.map(p=> ({...p, dist:distanceKm(lat,lon,p.lat,p.lon)})).sort((a,b)=> a.dist - b.dist);
+      renderList(sorted);
+    }, ()=> alert('Location access denied'));
+  } else alert('Geolocation not supported');
+});
+function distanceKm(lat1,lon1,lat2,lon2){
+  const R = 6371; const dLat = (lat2-lat1)*Math.PI/180; const dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-document.getElementById('searchBtn').addEventListener('click', filterAndRender);
-searchInput.addEventListener('keyup', e=>{ if(e.key==='Enter') filterAndRender(); });
-document.querySelectorAll('.chip').forEach(ch=>{ ch.addEventListener('click', ()=>{ document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); ch.classList.add('active'); filterAndRender(); }); });
-
-/* ===== location & reset ===== */
-document.getElementById('resetBtn').addEventListener('click', ()=>{ places = loadPlaces(); renderList(places); draw(); });
-document.getElementById('locateBtn').addEventListener('click', ()=>{ if(navigator.geolocation){ navigator.geolocation.getCurrentPosition(pos=>{ const lat=pos.coords.latitude, lon=pos.coords.longitude; // center globe
- rotLon = -lon; draw(); // sort list by distance
- const sorted = places.map(p=>({...p,dist:distanceKm(lat,lon,p.lat,p.lon)})).sort((a,b)=>a.dist-b.dist); renderList(sorted); }, ()=>{ alert('Location access denied'); }); } else alert('Geolocation not supported'); });
-
-function distanceKm(lat1,lon1,lat2,lon2){ const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
-
-/* ===== add place modal ===== */
+/* add place modal */
 const modal = document.getElementById('modal');
 document.getElementById('addPlaceBtn').addEventListener('click', ()=>{ modal.style.display='flex'; modal.setAttribute('aria-hidden','false'); document.getElementById('pName').focus(); });
 document.getElementById('cancelAdd').addEventListener('click', ()=>{ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); });
@@ -547,15 +548,16 @@ document.getElementById('confirmAdd').addEventListener('click', ()=>{
   const newP = { name, type, lat, lon, verified:false, reportedAt:new Date().toISOString() };
   places.unshift(newP);
   modal.style.display='none'; modal.setAttribute('aria-hidden','true');
-  renderList(places); savePlaces(places); draw(); alert('Report added as Pending.');
+  savePlaces(places); renderList(places); draw(); alert('Report added as Pending.');
 });
 document.getElementById('saveBtn').addEventListener('click', ()=> savePlaces(places));
 
-/* ===== CSV export/import ===== */
+/* CSV export/import */
 function exportCSV(){
   const rows = places.map(p => [p.name.replace(/,/g,' '), p.type, p.lat, p.lon, p.verified ? 'true' : 'false'].join(','));
   const csv = 'Name,Type,Lat,Lon,Verified\n' + rows.join('\n');
-  const blob = new Blob([csv], {type:'text/csv'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download='bangalore_relief_places.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  const blob = new Blob([csv], {type:'text/csv'}); const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'bangalore_relief_places.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 function importCSVText(text){
   const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
@@ -575,37 +577,79 @@ function importCSVText(text){
   return imported.length;
 }
 document.getElementById('exportBtn').addEventListener('click', exportCSV);
-document.getElementById('importBtn').addEventListener('click', ()=>{ const txt = prompt('Paste CSV rows (Name,Type,Lat,Lon,Verified). Leave header out or include it.'); if(txt){ const n = importCSVText(txt); alert(n ? ('Imported ' + n + ' places.') : 'No valid rows found.'); } });
+document.getElementById('importBtn').addEventListener('click', ()=>{
+  const txt = prompt('Paste CSV rows (Name,Type,Lat,Lon,Verified). Leave header out or include it.');
+  if(txt) {
+    const n = importCSVText(txt); alert(n ? ('Imported ' + n + ' places.') : 'No valid rows found.');
+  }
+});
 
-/* ===== admin/moderation ===== */
-const adminOpen = document.getElementById('adminOpen'), adminModal = document.getElementById('adminModal');
-const adminLogin = document.getElementById('adminLogin'), adminPass = document.getElementById('adminPass');
-const adminControls = document.getElementById('adminControls'), closeAdmin = document.getElementById('closeAdmin');
-const approveAll = document.getElementById('approveAll'), doImport = document.getElementById('doImport');
+/* admin moderation */
+const adminOpen = document.getElementById('adminOpen');
+const adminModal = document.getElementById('adminModal');
+const adminLogin = document.getElementById('adminLogin');
+const adminPass = document.getElementById('adminPass');
+const adminControls = document.getElementById('adminControls');
+const closeAdmin = document.getElementById('closeAdmin');
+const approveAll = document.getElementById('approveAll');
+const doImport = document.getElementById('doImport');
 
 adminOpen.addEventListener('click', ()=>{ adminModal.style.display='flex'; adminModal.setAttribute('aria-hidden','false'); adminPass.focus(); });
 closeAdmin.addEventListener('click', ()=>{ adminModal.style.display='none'; adminModal.setAttribute('aria-hidden','true'); adminControls.style.display='none'; adminControls.setAttribute('aria-hidden','true'); adminPass.value=''; });
 
-adminLogin.addEventListener('click', ()=>{ const pw = adminPass.value; if(!pw){ alert('Enter password'); return; } sessionStorage.setItem('bangalore_admin_pw', pw); adminControls.style.display='block'; adminControls.setAttribute('aria-hidden','false'); alert('Logged in for this session.'); });
+adminLogin.addEventListener('click', ()=>{
+  const pw = adminPass.value;
+  if(!pw){ alert('Enter password'); return; }
+  sessionStorage.setItem('bangalore_admin_pw', pw);
+  adminControls.style.display='block';
+  adminControls.setAttribute('aria-hidden','false');
+  alert('Logged in for this session.');
+});
 
-approveAll.addEventListener('click', ()=>{ let count=0; places.forEach(p=>{ if(!p.verified){ p.verified=true; count++; }}); savePlaces(places); renderList(places); draw(); alert('Approved '+count+' entries.'); });
-doImport.addEventListener('click', ()=>{ const txt = document.getElementById('importArea').value; if(!txt) return alert('Paste CSV rows to import'); const n = importCSVText(txt); alert(n ? ('Imported '+n+' places.') : 'No valid rows found.'); });
+approveAll.addEventListener('click', ()=>{
+  let count = 0;
+  places.forEach(p=>{ if(!p.verified){ p.verified = true; count++; }});
+  savePlaces(places); renderList(places); draw(); alert('Approved ' + count + ' entries.');
+});
 
-/* ===== Theme & language ===== */
+doImport.addEventListener('click', ()=>{
+  const txt = document.getElementById('importArea').value;
+  if(!txt) return alert('Paste CSV rows to import');
+  const n = importCSVText(txt);
+  alert(n ? ('Imported ' + n + ' places.') : 'No valid rows found.');
+});
+
+/* theme & language */
 const themeToggle = document.getElementById('themeToggle');
-themeToggle.addEventListener('click', ()=>{ const body=document.body; if(body.getAttribute('data-theme')==='dark'){ body.setAttribute('data-theme','light'); themeToggle.textContent='Dark'; themeToggle.setAttribute('aria-pressed','false'); } else { body.setAttribute('data-theme','dark'); themeToggle.textContent='Light'; themeToggle.setAttribute('aria-pressed','true'); }});
+themeToggle.addEventListener('click', ()=>{
+  const body = document.body;
+  if(body.getAttribute('data-theme') === 'dark'){
+    body.setAttribute('data-theme','light'); themeToggle.textContent = 'Dark'; themeToggle.setAttribute('aria-pressed','false');
+  } else {
+    body.setAttribute('data-theme','dark'); themeToggle.textContent = 'Light'; themeToggle.setAttribute('aria-pressed','true');
+  }
+});
 
 const langSel = document.getElementById('lang');
 langSel.addEventListener('change', ()=> applyLang(langSel.value));
-function applyLang(code){ const t = translations[code] || translations.en; document.getElementById('leftTitle').textContent = t.nearby; searchInput.placeholder = t.searchPlaceholder; document.getElementById('unwrittenSummary').textContent = (code==='ur')? 'Unwritten — ثقافتی نوٹس' : (code==='ta')? 'Unwritten — பண்பாட்டு குறிப்புகள்' : (code==='ml')? 'Unwritten — സംസ്കാരപരമായ കുറിപ്പുകൾ' : (code==='kn')? 'Unwritten — ಸಾಂಸ್ಕೃತಿಕ ಟಿಪ್ಪಣಿಗಳು' : 'Unwritten — Cultural Notes'; }
+function applyLang(code){
+  const t = translations[code] || translations.en;
+  document.getElementById('leftTitle').textContent = t.nearby;
+  searchInput.placeholder = t.searchPlaceholder;
+  document.getElementById('unwrittenSummary').textContent = (code==='ur')? 'Unwritten — ثقافتی نوٹس' : (code==='ta')? 'Unwritten — பண்பாட்டு குறிப்புகள்' : (code==='ml')? 'Unwritten — സംസ്കാരപരമായ കുറിപ്പുകൾ' : (code==='kn')? 'Unwritten — ಸಾಂಸ್ಕೃತಿಕ ಟಿಪ್ಪಣಿಗಳು' : 'Unwritten — Cultural Notes';
+}
 
-/* ===== initial render ===== */
+/* initial render */
 renderList(places);
 draw();
 applyLang('en');
 
-// expose API
+/* expose small debugging API */
 window._app = { places, loadPlaces, savePlaces, renderList, importCSVText };
+
+/* small accessibility: allow focusing search with "/" */
+window.addEventListener('keydown', e=>{ if(e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA'){ e.preventDefault(); searchInput.focus(); } });
+
 </script>
 </body>
 </html>
