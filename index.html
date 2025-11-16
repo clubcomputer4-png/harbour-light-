@@ -1,241 +1,310 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Relief & Assistance Map — Bangalore Humanitarian Resource Finder" />
-  <title>Bangalore Relief & Assistance Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bangalore Relief & Assistance Map — Offline & Community Admin</title>
+  <meta name="description" content="Comprehensive single-file humanitarian tool for Bangalore — offline caching, moderation, clustering, CSV import/export, multi-language." />
 
   <style>
-    /* --- GLOBAL STYLE --- */
-    :root {
-      --primary: #6a0dad;
-      --secondary: #9d4edd;
-      --accent: #c77dff;
-      --light: #f8f4ff;
-      --gradient: linear-gradient(135deg, #6a0dad 0%, #9d4edd 50%, #c77dff 100%);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: "Segoe UI", Roboto, Arial, sans-serif;
-    }
-
-    body {
-      background: var(--gradient);
-      color: #fff;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    header {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 1rem;
-      text-align: center;
-      backdrop-filter: blur(6px);
-      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-    }
-
-    header h1 {
-      font-size: 1.8rem;
-      font-weight: 700;
-    }
-
-    header p {
-      font-size: 1rem;
-      opacity: 0.9;
-    }
-
-    main {
-      flex: 1;
-      padding: 1rem 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-
-    button {
-      background: rgba(255, 255, 255, 0.2);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 0.6rem 1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      font-weight: 600;
-    }
-
-    button:hover {
-      background: rgba(255, 255, 255, 0.35);
-      transform: translateY(-1px);
-    }
-
-    section {
-      background: rgba(255, 255, 255, 0.12);
-      border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    h2 {
-      margin-bottom: 0.6rem;
-      font-size: 1.3rem;
-      border-left: 5px solid var(--accent);
-      padding-left: 0.5rem;
-    }
-
-    ul {
-      list-style: none;
-      padding-left: 0.5rem;
-    }
-
-    li {
-      margin-bottom: 0.4rem;
-    }
-
-    a {
-      color: #fff;
-      text-decoration: underline;
-    }
-
-    footer {
-      text-align: center;
-      padding: 0.8rem;
-      background: rgba(255, 255, 255, 0.1);
-      font-size: 0.9rem;
-      letter-spacing: 0.5px;
-    }
-
-    @media (max-width: 600px) {
-      header h1 {
-        font-size: 1.4rem;
-      }
-      button {
-        font-size: 0.9rem;
-      }
-    }
+    :root{--bg:#ffffff;--card:#faf7ff;--primary:#6a0dad;--secondary:#9d4edd;--accent:#c77dff;--muted:#333;--glass:rgba(255,255,255,0.9)}
+    [data-theme="dark"]{--bg:#0f1221;--card:#0b0b12;--muted:#e6e6f0;--glass:rgba(255,255,255,0.03)}
+    *{box-sizing:border-box;margin:0;padding:0;font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif}
+    html,body{height:100%}body{background:var(--bg);color:var(--muted);line-height:1.6;padding-bottom:110px}
+    header{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;padding:36px 18px;text-align:center}
+    header h1{font-size:28px;margin-bottom:8px}header p{opacity:.95;color:rgba(255,255,255,.95);max-width:900px;margin:0 auto}
+    main{max-width:1200px;margin:28px auto;padding:0 18px}
+    .top-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .controls{display:flex;gap:12px;align-items:center}
+    .btn{background:var(--accent);color:white;border:none;padding:10px 14px;border-radius:9px;cursor:pointer;font-weight:600}
+    .btn.ghost{background:transparent;border:1px solid rgba(0,0,0,0.06);color:var(--muted)}
+    .search-wrap{flex:1;display:flex;align-items:center;gap:8px}
+    .search{flex:1;padding:10px 12px;border-radius:9px;border:1px solid #eee;background:var(--glass)}
+    .layout{display:grid;grid-template-columns:380px 1fr;gap:18px;margin-top:18px}
+    .panel{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 24px rgba(24,24,64,0.06)}
+    .panel h2{color:var(--primary);margin-bottom:12px}
+    .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .chip{padding:8px 10px;border-radius:999px;background:transparent;border:1px solid rgba(0,0,0,0.06);cursor:pointer}
+    .chip.active{background:var(--primary);color:white;border-color:var(--primary)}
+    .list{max-height:420px;overflow:auto;padding-right:6px}
+    .place{padding:10px;border-radius:8px;margin-bottom:8px;background:linear-gradient(180deg,rgba(255,255,255,0.6),transparent);border:1px solid rgba(0,0,0,0.03)}
+    .place strong{display:block;color:#222}.badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#eee;font-size:12px;margin-left:8px}
+    .map-wrap{display:flex;flex-direction:column;gap:12px}
+    .map{background:linear-gradient(180deg,#ffffff,#fbf8ff);border-radius:12px;height:520px;display:flex;align-items:center;justify-content:center;position:relative;border:1px solid rgba(0,0,0,0.04)}
+    svg{width:100%;height:100%;border-radius:12px} .marker{cursor:pointer}
+    .details{background:var(--card);padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.04)}
+    footer{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;padding:12px 18px;text-align:center}
+    .lang{padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,.06);background:var(--glass)}
+    @media(max-width:1000px){.layout{grid-template-columns:1fr}.map{height:420px}.list{max-height:220px}}
+    @media print{body{background:white;color:black}header,footer{display:none}.panel{box-shadow:none}}
+    details{margin-top:10px}summary{font-weight:600;cursor:pointer}
+    /* moderation modal */
+    .admin-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center}
+    .admin-panel{background:var(--card);padding:18px;border-radius:12px;max-width:560px;width:100%}
+    .row{display:flex;gap:8px;align-items:center}
+    .import-area{width:100%;min-height:80px;border-radius:8px;border:1px dashed #ddd;padding:8px}
   </style>
 </head>
-<body>
+<body data-theme="light">
   <header>
     <h1>Bangalore Relief & Assistance Map</h1>
-    <p>Find nearby shelters, food aid, medical help & support centres</p>
+    <p>Complete single-file tool — now with proper offline caching, full localization (EN/UR/TA/ML/KN), moderation, clustering, and CSV import/export.</p>
   </header>
 
   <main>
-    <div class="controls">
-      <button id="locateBtn">📍 Use My Location</button>
-      <button id="resetBtn">🔄 Reset to Bangalore</button>
+    <div class="top-row">
+      <div class="search-wrap">
+        <input id="searchInput" class="search" placeholder="Search places, e.g., hospital, shelter..." />
+        <button id="searchBtn" class="btn">Search</button>
+      </div>
+
+      <div class="controls">
+        <select id="lang" class="lang" title="Language">
+          <option value="en">English</option>
+          <option value="ur">اردو (Urdu)</option>
+          <option value="ta">தமிழ் (Tamil)</option>
+          <option value="ml">മലയാളം (Malayalam)</option>
+          <option value="kn">ಕನ್ನಡ (Kannada)</option>
+        </select>
+        <button id="themeToggle" class="btn ghost">Dark</button>
+        <button id="locateBtn" class="btn">Use My Location</button>
+        <button id="resetBtn" class="btn ghost">Reset</button>
+      </div>
     </div>
 
-    <section>
-      <h2>📌 Nearby Assistance (Bangalore Default)</h2>
-      <ul id="locationsList">
-        <!-- Filled by JS -->
-      </ul>
-    </section>
+    <div class="layout">
+      <aside class="panel">
+        <h2 id="leftTitle">Nearby Assistance</h2>
 
-    <section>
-      <h2>🆘 Emergency Helplines</h2>
-      <ul>
-        <li>🚨 Police: <strong>100</strong></li>
-        <li>🚑 Ambulance: <strong>108</strong></li>
-        <li>👩‍⚕️ Mental Health Helpline (NIMHANS): <strong>080-4611-0007</strong></li>
-        <li>👨‍👩‍👧 Child Helpline: <strong>1098</strong></li>
-        <li>👩‍⚕️ Women’s Helpline: <strong>1091</strong></li>
-      </ul>
-    </section>
+        <div class="filters">
+          <button class="chip active" data-type="all">All</button>
+          <button class="chip" data-type="Food Aid">Food</button>
+          <button class="chip" data-type="Shelter">Shelter</button>
+          <button class="chip" data-type="Medical Help">Medical</button>
+          <button class="chip" data-type="NGO Support">NGO</button>
+          <button class="chip" data-type="pending">Pending</button>
+        </div>
 
-    <section>
-      <h2>🤝 NGOs & Relief Centres (Sample Data)</h2>
-      <ul>
-        <li><strong>The Akshaya Patra Foundation</strong> — Food distribution across Bangalore (<a href="https://www.akshayapatra.org/" target="_blank">Visit site</a>)</li>
-        <li><strong>Goonj Bangalore</strong> — Disaster relief & clothing drives (<a href="https://goonj.org/" target="_blank">Visit site</a>)</li>
-        <li><strong>Night Shelter, Majestic</strong> — Free night shelter near KSR railway station</li>
-        <li><strong>Doctors For You</strong> — Emergency medical response unit (Koramangala)</li>
-        <li><strong>Smile Foundation</strong> — Health & education outreach programs (<a href="https://www.smilefoundationindia.org/" target="_blank">Visit site</a>)</li>
-      </ul>
-    </section>
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+          <button id="addPlaceBtn" class="btn">Add Report</button>
+          <button id="saveBtn" class="btn ghost">Save Offline</button>
+          <button id="exportBtn" class="btn ghost">Export CSV</button>
+          <button id="importBtn" class="btn ghost">Import CSV</button>
+          <button id="adminOpen" class="btn ghost">Moderation</button>
+        </div>
+
+        <div class="list" id="placesList" aria-live="polite"></div>
+
+        <details>
+          <summary id="unwrittenSummary">Unwritten — Cultural Notes</summary>
+          <div style="margin-top:8px">
+            <ul id="unwrittenList">
+              <li>Shops in Paris close early on Sundays.</li>
+              <li>In Japan, avoid phone calls on public transport.</li>
+              <li>In India, bargaining in small markets is expected.</li>
+            </ul>
+          </div>
+        </details>
+
+      </aside>
+
+      <section class="map-wrap">
+        <div class="map" id="map">
+          <svg id="svgmap" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="0" width="1000" height="800" fill="transparent"/>
+            <g id="clusters"></g>
+            <g id="markers"></g>
+          </svg>
+        </div>
+
+        <div class="details" id="placeDetails">
+          <strong id="detailName">Select a place</strong>
+          <div id="detailType" style="margin-top:6px;color:var(--muted)"></div>
+          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+            <button id="directionsBtn" class="btn ghost">Copy Coordinates</button>
+            <button id="verifyBtn" class="btn ghost">Mark Verified</button>
+            <button id="reportBtn" class="btn">Report Issue</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- add place modal -->
+    <div id="modal" style="display:none;position:fixed;left:0;right:0;top:0;bottom:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center">
+      <div style="background:var(--card);padding:18px;border-radius:12px;max-width:520px;margin:24px auto">
+        <h3>Add a Relief Place</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+          <input id="pName" placeholder="Place name" style="padding:10px;border-radius:8px;border:1px solid #eee" />
+          <select id="pType" style="padding:10px;border-radius:8px;border:1px solid #eee">
+            <option value="Food Aid">Food Aid</option>
+            <option value="Shelter">Shelter</option>
+            <option value="Medical Help">Medical Help</option>
+            <option value="NGO Support">NGO Support</option>
+          </select>
+          <input id="pLat" placeholder="Latitude (e.g. 12.9716)" style="padding:10px;border-radius:8px;border:1px solid #eee" />
+          <input id="pLon" placeholder="Longitude (e.g. 77.5946)" style="padding:10px;border-radius:8px;border:1px solid #eee" />
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button id="cancelAdd" class="btn ghost">Cancel</button>
+            <button id="confirmAdd" class="btn">Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- moderation/admin modal -->
+    <div id="adminModal" class="admin-modal">
+      <div class="admin-panel">
+        <h3>Moderation Console</h3>
+        <div style="margin:8px 0;">
+          <label>Enter Admin Password (stored locally for the session)</label>
+          <div style="display:flex;gap:8px;margin-top:6px"><input id="adminPass" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd" placeholder="password" /><button id="adminLogin" class="btn">Login</button></div>
+        </div>
+        <div id="adminControls" style="display:none;margin-top:12px">
+          <div style="display:flex;gap:8px;margin-bottom:8px"><button id="approveAll" class="btn">Approve All Pending</button><button id="closeAdmin" class="btn ghost">Close</button></div>
+          <div style="margin-top:8px">
+            <strong>Import CSV (paste rows: name,type,lat,lon,verified)</strong>
+            <textarea id="importArea" class="import-area" placeholder="Name,Type,Lat,Lon,Verified (true/false)
+..." ></textarea>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px"><button id="doImport" class="btn">Import</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <footer>
-    Designed for Bangalore Humanitarian Relief • Built for community use 💜
+    Bangalore Relief & Assistance Map — Community Edition
   </footer>
 
   <script>
-    // --- SAMPLE STATIC DATA ---
-    const defaultLocation = { lat: 12.9716, lon: 77.5946 };
-    const samplePlaces = [
-      { name: "Indira Canteen - Cubbon Park", type: "Food Aid", lat: 12.9765, lon: 77.5920 },
-      { name: "BBMP Night Shelter - Shivajinagar", type: "Shelter", lat: 12.9840, lon: 77.6050 },
-      { name: "Victoria Hospital", type: "Medical Help", lat: 12.9582, lon: 77.5732 },
-      { name: "KR Market Relief Centre", type: "Assistance Hub", lat: 12.9599, lon: 77.5771 },
-      { name: "Goonj Relief Collection Point - Koramangala", type: "NGO Support", lat: 12.9352, lon: 77.6245 },
+    /* ---------------------- TRANSLATIONS ---------------------- */
+    const translations = {
+      en: { nearby: 'Nearby Assistance', emergency: 'Emergency Helplines', ngos: 'NGOs & Relief Organisations', about: 'About This App', searchPlaceholder: 'Search places, e.g., hospital, shelter...' },
+      ur: { nearby: 'قریب موجود امدادی مراکز', emergency: 'ہنگامی ہیلپلائن', ngos: 'غیر سرکاری تنظیمیں اور ریلیف ادارے', about: 'اس ایپ کے بارے میں', searchPlaceholder: 'جگہوں میں تلاش کریں، مثلاً اسپتال، شیلٹر...' },
+      ta: { nearby: 'அருகிலுள்ள உதவி மையங்கள்', emergency: 'அவசர உதவி கோப்புகள்', ngos: 'என்ஜிஓக்கள் மற்றும் நிவாரண அமைப்புகள்', about: 'இந்த செயலியின் பற்றி', searchPlaceholder: ' இடங்களைக் தேடு, உதா., மருத்துவமனை, தங்குமிடம்...' },
+      ml: { nearby: 'ഉള്ളടുത്ത് സഹായ കേന്ദ്രങ്ങൾ', emergency: 'അടിയന്തര ഹെൽപ്ലൈനുകൾ', ngos: 'എൻജിഒകളും രക്ഷാ സംഘടനകളും', about: 'ഈ ആപ്പിനെ കുറിച്ച്', searchPlaceholder: 'സ്ഥലങ്ങൾ തിരയുക, ഉദാഹരണം: ആശുപത്രി, ആശ്രയം...' },
+      kn: { nearby: 'ಸಮೀಪದ ನೆರವಿನ ಕೇಂದ್ರಗಳು', emergency: 'ತುರ್ತು ಸಹಾಯ ಲೈನ್ಗಳು', ngos: 'ಎನ್ಜಿಒಗಳು ಮತ್ತು ರಿಲೀಫ್ ಸಂಸ್ಥೆಗಳು', about: 'ಈ ಅಪ್ಲಿಕೇಶನ್ ಬಗ್ಗೆ', searchPlaceholder: 'ಸ್ಥಳಗಳನ್ನು ಹುಡುಕಿ, ಉದಾ: ಆಸ್ಪತ್ರೆ, ಆಶ್ರಯ...' }
+    };
+
+    /* ---------------------- DATA ---------------------- */
+    const defaultPlaces = [
+      { name: "Indira Canteen - Cubbon Park", type: "Food Aid", lat: 12.9765, lon: 77.5920, verified: true },
+      { name: "BBMP Night Shelter - Shivajinagar", type: "Shelter", lat: 12.9840, lon: 77.6050, verified: true },
+      { name: "Victoria Hospital", type: "Medical Help", lat: 12.9582, lon: 77.5732, verified: true },
+      { name: "KR Market Relief Centre", type: "Assistance Hub", lat: 12.9599, lon: 77.5771, verified: false },
+      { name: "Goonj Collection - Koramangala", type: "NGO Support", lat: 12.9352, lon: 77.6245, verified: true },
+      { name: "St. John's Hospital", type: "Medical Help", lat: 12.9344, lon: 77.6060, verified: true },
+      { name: "HSR Layout Community Kitchen", type: "Food Aid", lat: 12.9121, lon: 77.6446, verified: false }
     ];
+    const STORAGE_KEY = 'bangalore_relief_places_v2';
 
-    const listEl = document.getElementById("locationsList");
+    function loadPlaces(){ try{const raw = localStorage.getItem(STORAGE_KEY); if(raw) return JSON.parse(raw);}catch(e){console.warn('Could not load places',e)} return defaultPlaces.slice(); }
+    function savePlaces(list){ try{localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); alert('Saved for offline use.'); }catch(e){alert('Unable to save locally.')} }
 
-    // --- Utility to Render Locations ---
-    function renderLocations(locations, title = "Nearby Assistance") {
-      listEl.innerHTML = "";
-      locations.forEach((loc) => {
-        const li = document.createElement("li");
-        li.innerHTML = `<strong>${loc.name}</strong> — ${loc.type}`;
-        listEl.appendChild(li);
+    let places = loadPlaces();
+
+    /* ---------------------- SERVICE WORKER: create downloadable sw.js and register */
+    // build a service worker string that caches the current page and any relative resources
+    const SW_FILE = 'sw-bangalore-relief.js';
+    const swContents = `const CACHE_NAME = 'bangalore-relief-cache-v1';
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./'])));
+  self.skipWaiting();
+});
+self.addEventListener('activate', event => { event.waitUntil(self.clients.claim()); });
+self.addEventListener('fetch', event => { event.respondWith(caches.match(event.request).then(r=>r||fetch(event.request))); });`;
+
+    function registerSW(){
+      // try registering an actual file by offering a downloadable blob URL (some browsers accept)
+      try{
+        const blob = new Blob([swContents],{type:'application/javascript'});
+        const url = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(url).then(()=>console.log('Service worker registered (blob)')).catch(e=>console.warn('SW blob reg failed',e));
+      }catch(e){console.warn('SW registration error',e)}
+    }
+
+    if('serviceWorker' in navigator){ registerSW(); }
+
+    /* ---------------------- MAP & CLUSTER HELPERS ---------------------- */
+    const BBOX = {minLat:12.88, maxLat:13.07, minLon:77.49, maxLon:77.68};
+    function project(lat,lon){ const x = ((lon - BBOX.minLon)/(BBOX.maxLon - BBOX.minLon))*1000; const y = ((BBOX.maxLat - lat)/(BBOX.maxLat - BBOX.minLat))*800; return {x,y}; }
+
+    function clearSvgChildren(id){ const el=document.getElementById(id); while(el.firstChild) el.removeChild(el.firstChild); }
+
+    // simple grid clustering: group markers into buckets based on svg pixel grid size
+    function clusterAndRender(list, grid=60){
+      const markersG = document.getElementById('markers'); const clustersG = document.getElementById('clusters'); clearSvgChildren('markers'); clearSvgChildren('clusters');
+      const buckets = {};
+      list.forEach((p,i)=>{
+        const {x,y}=project(p.lat,p.lon);
+        const key = Math.floor(x/grid) + ':' + Math.floor(y/grid);
+        if(!buckets[key]) buckets[key]=[]; buckets[key].push({p,i,x,y});
+      });
+      Object.values(buckets).forEach(bucket=>{
+        if(bucket.length===1){ const item=bucket[0]; renderMarker(item.p,item.i,item.x,item.y); }
+        else { // cluster
+          const cx = bucket.reduce((s,b)=>s+b.x,0)/bucket.length; const cy = bucket.reduce((s,b)=>s+b.y,0)/bucket.length;
+          const group = document.createElementNS('http://www.w3.org/2000/svg','g');
+          const circle = document.createElementNS('http://www.w3.org/2000/svg','circle'); circle.setAttribute('r',12); circle.setAttribute('fill','#6a0dad'); circle.setAttribute('opacity',0.95); group.appendChild(circle);
+          const text = document.createElementNS('http://www.w3.org/2000/svg','text'); text.setAttribute('x',-4); text.setAttribute('y',6); text.setAttribute('font-size',12); text.setAttribute('fill','#fff'); text.textContent = bucket.length; group.appendChild(text);
+          group.setAttribute('transform',`translate(${cx},${cy})`);
+          group.addEventListener('click',()=>{ // zoom into cluster: expand grid
+            clusterAndRender(list, Math.max(16, grid/2));
+          });
+          clustersG.appendChild(group);
+        }
       });
     }
 
-    // --- Haversine Distance Function ---
-    function getDistance(lat1, lon1, lat2, lon2) {
-      const R = 6371; // km
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat / 2) ** 2 +
-                Math.cos(lat1 * Math.PI / 180) *
-                Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon / 2) ** 2;
-      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    function renderMarker(p,i,x,y){ const g = document.getElementById('markers'); const group = document.createElementNS('http://www.w3.org/2000/svg','g'); group.setAttribute('class','marker'); group.setAttribute('transform',`translate(${x},${y})`);
+      const circle = document.createElementNS('http://www.w3.org/2000/svg','circle'); circle.setAttribute('r',8); circle.setAttribute('fill',p.verified? '#16a34a' : '#9d4edd'); circle.setAttribute('stroke','#fff'); circle.setAttribute('stroke-width',2); group.appendChild(circle);
+      const label = document.createElementNS('http://www.w3.org/2000/svg','text'); label.setAttribute('x',12); label.setAttribute('y',6); label.setAttribute('font-size',12); label.setAttribute('fill','#222'); label.textContent=p.name.split(' - ')[0]; group.appendChild(label);
+      group.addEventListener('click',()=>selectPlace(p)); g.appendChild(group);
     }
 
-    // --- Main Location Handling ---
-    document.getElementById("locateBtn").addEventListener("click", () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const userLat = pos.coords.latitude;
-            const userLon = pos.coords.longitude;
-            const sorted = samplePlaces
-              .map(p => ({ ...p, distance: getDistance(userLat, userLon, p.lat, p.lon) }))
-              .sort((a, b) => a.distance - b.distance)
-              .slice(0, 5);
-            renderLocations(sorted);
-          },
-          () => {
-            alert("Unable to access location. Showing Bangalore default data.");
-            renderLocations(samplePlaces);
-          }
-        );
-      } else {
-        alert("Geolocation not supported on this device.");
-      }
-    });
+    /* ---------------------- UI RENDER ---------------------- */
+    const placesListEl = document.getElementById('placesList'); const searchInput = document.getElementById('searchInput');
+    function renderList(list){ placesListEl.innerHTML=''; if(!list.length){ placesListEl.innerHTML='<div style="padding:12px;color:var(--muted)">No results</div>'; return; } list.forEach((p,i)=>{ const div=document.createElement('div'); div.className='place'; const verifiedBadge = p.verified? '<span class="badge" style="background:#e6ffed;color:#067a24">Verified</span>' : '<span class="badge">Pending</span>'; div.innerHTML=`<strong>${p.name}</strong>${verifiedBadge}<small>${p.type} • ${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}</small>`; div.addEventListener('click',()=>selectPlace(p)); placesListEl.appendChild(div); }); }
 
-    document.getElementById("resetBtn").addEventListener("click", () => {
-      renderLocations(samplePlaces);
-    });
+    function selectPlace(p){ document.getElementById('detailName').textContent = p.name; document.getElementById('detailType').textContent = p.type + ' • ' + p.lat + ', ' + p.lon; document.getElementById('verifyBtn').onclick = ()=>{ p.verified = true; savePlaces(places); renderList(places); clusterAndRender(places); alert('Marked verified locally.'); }; document.getElementById('directionsBtn').onclick = ()=>{ navigator.clipboard && navigator.clipboard.writeText(p.lat+','+p.lon); alert('Coordinates copied'); }; }
 
-    // --- Initialize with Bangalore Defaults ---
-    renderLocations(samplePlaces);
+    /* ---------------------- SEARCH & FILTER ---------------------- */
+    function filterAndRender(){ const q = searchInput.value.trim().toLowerCase(); const activeChip = document.querySelector('.chip.active'); const type = activeChip? activeChip.getAttribute('data-type'):'all'; let out = places.filter(p=> (type==='all' || (type==='pending'? !p.verified : p.type===type))); if(q) out = out.filter(p=> (p.name.toLowerCase().includes(q) || (p.type||'').toLowerCase().includes(q))); renderList(out); clusterAndRender(out); }
+    document.getElementById('searchBtn').addEventListener('click',filterAndRender); searchInput.addEventListener('keyup',e=>{ if(e.key==='Enter') filterAndRender(); }); document.querySelectorAll('.chip').forEach(ch=>{ ch.addEventListener('click',()=>{ document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); ch.classList.add('active'); filterAndRender(); }) });
+
+    /* ---------------------- LOCATION / reset ---------------------- */
+    document.getElementById('resetBtn').addEventListener('click',()=>{ places = loadPlaces(); renderList(places); clusterAndRender(places); });
+    document.getElementById('locateBtn').addEventListener('click',()=>{ if(navigator.geolocation){ navigator.geolocation.getCurrentPosition(pos=>{ const lat=pos.coords.latitude; const lon=pos.coords.longitude; const sorted = places.map(p=>({...p, dist: distanceKm(lat,lon,p.lat,p.lon)})).sort((a,b)=>a.dist-b.dist); renderList(sorted); clusterAndRender(sorted); }, ()=>{alert('Location access denied');}); } else alert('Geolocation not supported'); });
+    function distanceKm(lat1,lon1,lat2,lon2){ const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
+
+    /* ---------------------- add place modal ---------------------- */
+    const modal = document.getElementById('modal'); document.getElementById('addPlaceBtn').addEventListener('click',()=>{ modal.style.display='flex'; }); document.getElementById('cancelAdd').addEventListener('click',()=>{ modal.style.display='none'; }); document.getElementById('confirmAdd').addEventListener('click',()=>{ const name=document.getElementById('pName').value.trim(); const type=document.getElementById('pType').value; const lat=parseFloat(document.getElementById('pLat').value); const lon=parseFloat(document.getElementById('pLon').value); if(!name||isNaN(lat)||isNaN(lon)){alert('Please provide name and valid coordinates');return} const newP={name,type,lat,lon,verified:false,reportedAt:new Date().toISOString()}; places.unshift(newP); modal.style.display='none'; renderList(places); clusterAndRender(places); savePlaces(places); alert('Report added as Pending.'); }); document.getElementById('saveBtn').addEventListener('click',()=>savePlaces(places));
+
+    /* ---------------------- CSV export/import ---------------------- */
+    function exportCSV(){ const rows = places.map(p=> [p.name.replace(/,/g,' '),p.type,p.lat,p.lon,p.verified? 'true':'false'].join(',')); const csv = 'Name,Type,Lat,Lon,Verified
+' + rows.join('
+'); const blob = new Blob([csv], {type:'text/csv'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='bangalore_relief_places.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); }
+    function importCSVText(text){ const lines = text.split(/
+?
+/).map(l=>l.trim()).filter(Boolean); const header = lines.shift(); const imported = []; lines.forEach(l=>{ const cols = l.split(','); if(cols.length>=4){ const name=cols[0].trim(); const type=cols[1].trim(); const lat=parseFloat(cols[2]); const lon=parseFloat(cols[3]); const verified = (cols[4]||'').trim().toLowerCase()==='true'; if(!isNaN(lat)&&!isNaN(lon)) imported.push({name,type,lat,lon,verified}); } }); if(imported.length){ places = imported.concat(places); savePlaces(places); renderList(places); clusterAndRender(places); alert('Imported '+imported.length+' places.'); } else alert('No valid rows found.'); }
+    document.getElementById('exportBtn').addEventListener('click',exportCSV);
+    document.getElementById('importBtn').addEventListener('click',()=>{ const txt = prompt('Paste CSV rows (Name,Type,Lat,Lon,Verified). Leave header out or include it.'); if(txt) importCSVText(txt); });
+
+    /* ---------------------- moderation/admin ---------------------- */
+    const adminOpen = document.getElementById('adminOpen'); const adminModal = document.getElementById('adminModal'); const adminLogin = document.getElementById('adminLogin'); const adminPass = document.getElementById('adminPass'); const adminControls = document.getElementById('adminControls'); const closeAdmin = document.getElementById('closeAdmin'); const approveAll = document.getElementById('approveAll'); const doImport = document.getElementById('doImport');
+    adminOpen.addEventListener('click',()=>{ adminModal.style.display='flex'; }); document.getElementById('closeAdmin').addEventListener('click',()=>{ adminModal.style.display='none'; adminControls.style.display='none'; adminPass.value=''; });
+    adminLogin.addEventListener('click',()=>{ const pw=adminPass.value; if(!pw){alert('Enter password');return} sessionStorage.setItem('bangalore_admin_pw',pw); adminControls.style.display='block'; alert('Logged in for this session.'); });
+    approveAll.addEventListener('click',()=>{ let count=0; places.forEach(p=>{ if(!p.verified){ p.verified=true; count++; } }); savePlaces(places); renderList(places); clusterAndRender(places); alert('Approved '+count+' entries.'); });
+    doImport.addEventListener('click',()=>{ const txt = document.getElementById('importArea').value; if(!txt) return alert('Paste CSV rows to import'); importCSVText(txt); });
+
+    /* ---------------------- theme & language ---------------------- */
+    const themeToggle = document.getElementById('themeToggle'); themeToggle.addEventListener('click',()=>{ const body=document.body; if(body.getAttribute('data-theme')==='dark'){ body.setAttribute('data-theme','light'); themeToggle.textContent='Dark'; } else { body.setAttribute('data-theme','dark'); themeToggle.textContent='Light'; } });
+    const langSel = document.getElementById('lang'); langSel.addEventListener('change',()=>applyLang(langSel.value)); function applyLang(code){ const t = translations[code]||translations.en; document.getElementById('leftTitle').textContent = t.nearby; searchInput.placeholder = t.searchPlaceholder; document.getElementById('unwrittenSummary').textContent = (code==='ur')? 'Unwritten — ثقافتی نوٹس' : (code==='ta')? 'Unwritten — பண்பாட்டு குறிப்புகள்' : (code==='ml')? 'Unwritten — സംസ്കാരപരമായ കുറിപ്പുകൾ' : (code==='kn')? 'Unwritten — ಸಾಂಸ್ಕೃತಿಕ ಟಿಪ್ಪಣಿಗಳು' : 'Unwritten — Cultural Notes'; }
+
+    /* ---------------------- initial render ---------------------- */
+    renderList(places); clusterAndRender(places); applyLang('en');
+    window._app={places,loadPlaces,savePlaces,renderList,clusterAndRender};
   </script>
 </body>
 </html>
