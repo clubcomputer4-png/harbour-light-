@@ -1,79 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Bangalore Relief & Assistance Map — Fixed & Complete</title>
-  <meta name="description" content="Single-file humanitarian tool for Bangalore — offline caching, moderation, clustering, CSV import/export, multi-language." />
-  <style>
-    :root{
-      --bg:#ffffff;
-      --card:#faf7ff;
-      --primary:#6a0dad;
-      --secondary:#9d4edd;
-      --accent:#c77dff;
-      --muted:#222;
-      --glass:rgba(255,255,255,0.95)
-    }
-    [data-theme="dark"]{
-      --bg:#0f1221;
-      --card:#0b0b12;
-      --muted:#e6e6f0;
-      --glass:rgba(255,255,255,0.03)
-    }
-    *{box-sizing:border-box;margin:0;padding:0;font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif}
-    html,body{height:100%}
-    body{background:var(--bg);color:var(--muted);line-height:1.6;padding-bottom:110px}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Bangalore Relief & Assistance Map — Interactive Earth (White Theme)</title>
+<meta name="description" content="Humanitarian map — interactive globe, offline save, CSV import/export, moderation, multi-language." />
+<style>
+  :root{
+    --bg:#ffffff;
+    --card:#f7f7f7;
+    --primary:#0a84ff;
+    --muted:#111;
+    --glass:rgba(255,255,255,0.95);
+    --muted-2:#666;
+  }
+  [data-theme="dark"]{
+    --bg:#0d0d0d;
+    --card:#1a1a1a;
+    --primary:#0a84ff;
+    --muted:#e6e6e6;
+    --glass:rgba(255,255,255,0.06);
+    --muted-2:#bbb;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--muted);line-height:1.6;padding-bottom:110px}
 
-    header{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;padding:28px 18px;text-align:center}
-    header h1{font-size:26px;margin-bottom:6px}
-    header p{opacity:.95;color:rgba(255,255,255,.95);max-width:920px;margin:0 auto}
+  header{
+    background:linear-gradient(90deg,#ffffff,#f3f7ff);
+    color:var(--muted);
+    padding:20px 18px;text-align:center;border-bottom:1px solid #eee;
+  }
+  header h1{font-size:22px;margin-bottom:6px}
+  header p{opacity:.9;color:var(--muted-2);max-width:920px;margin:0 auto}
 
-    main{max-width:1200px;margin:22px auto;padding:0 18px}
-    .top-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
-    .controls{display:flex;gap:12px;align-items:center}
-    .btn{background:var(--accent);color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
-    .btn.ghost{background:transparent;border:1px solid rgba(0,0,0,0.06);color:var(--muted)}
-
-    .search-wrap{flex:1;display:flex;align-items:center;gap:8px}
-    .search{flex:1;padding:10px 12px;border-radius:8px;border:1px solid #eee;background:var(--glass)}
-
-    .layout{display:grid;grid-template-columns:380px 1fr;gap:18px;margin-top:18px}
-    .panel{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 24px rgba(24,24,64,0.06)}
-    .panel h2{color:var(--primary);margin-bottom:10px}
-    .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-    .chip{padding:8px 10px;border-radius:999px;background:transparent;border:1px solid rgba(0,0,0,0.06);cursor:pointer}
-    .chip.active{background:var(--primary);color:white;border-color:var(--primary)}
-
-    .list{max-height:420px;overflow:auto;padding-right:6px}
-    .place{padding:10px;border-radius:8px;margin-bottom:8px;background:linear-gradient(180deg,rgba(255,255,255,0.6),transparent);border:1px solid rgba(0,0,0,0.03)}
-    .place strong{display:block;color:#222}
-    .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#eee;font-size:12px;margin-left:8px}
-
-    .map-wrap{display:flex;flex-direction:column;gap:12px}
-    .map{background:linear-gradient(180deg,#ffffff,#fbf8ff);border-radius:12px;height:520px;display:flex;align-items:center;justify-content:center;position:relative;border:1px solid rgba(0,0,0,0.04)}
-    svg{width:100%;height:100%;border-radius:12px}
-    .marker{cursor:pointer}
-
-    .details{background:var(--card);padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.04)}
-    footer{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;padding:12px 18px;text-align:center}
-
-    .lang{padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,.06);background:#fff}
-    @media(max-width:1000px){.layout{grid-template-columns:1fr}.map{height:420px}.list{max-height:220px}}
-    @media print{body{background:white;color:black}header,footer{display:none}.panel{box-shadow:none}}
-    details{margin-top:10px}summary{font-weight:600;cursor:pointer}
-
-    /* modals */
-    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:1200}
-    .modal .panel-inner{background:var(--card);padding:18px;border-radius:12px;max-width:560px;width:100%}
-    .admin-controls{display:none;margin-top:12px}
-    textarea.import-area{width:100%;min-height:100px;border-radius:8px;border:1px dashed #ddd;padding:8px}
-  </style>
+  main{max-width:1200px;margin:22px auto;padding:0 18px}
+  .top-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  .controls{display:flex;gap:12px;align-items:center}
+  .btn{background:var(--primary);color:white;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+  .btn.ghost{background:transparent;border:1px solid rgba(0,0,0,0.08);color:var(--muted)}
+  .search-wrap{flex:1;display:flex;align-items:center;gap:8px}
+  .search{flex:1;padding:10px 12px;border-radius:8px;border:1px solid #e6e6e9;background:var(--glass)}
+  .layout{display:grid;grid-template-columns:380px 1fr;gap:18px;margin-top:18px}
+  .panel{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.04)}
+  .panel h2{color:#000;margin-bottom:10px}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .chip{padding:8px 10px;border-radius:999px;background:transparent;border:1px solid #ddd;cursor:pointer}
+  .chip.active{background:var(--primary);color:white;border-color:var(--primary)}
+  .list{max-height:420px;overflow:auto;padding-right:6px}
+  .place{padding:10px;border-radius:8px;margin-bottom:8px;background:#fff;border:1px solid #eee}
+  .place strong{display:block;color:#000}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#f0f4ff;font-size:12px;margin-left:8px;color:var(--primary)}
+  .map-wrap{display:flex;flex-direction:column;gap:12px}
+  .map{
+    background:#fff;border-radius:12px;height:520px;display:flex;align-items:center;justify-content:center;position:relative;border:1px solid #e6e6e6;overflow:hidden;
+  }
+  #globeCanvas{width:100%;height:100%;display:block}
+  .details{background:var(--card);padding:12px;border-radius:10px;border:1px solid rgba(0,0,0,0.06)}
+  footer{position:fixed;left:0;right:0;bottom:0;background:#ffffff;color:var(--muted);padding:12px 18px;text-align:center;border-top:1px solid #eee}
+  .lang{padding:8px;border-radius:8px;border:1px solid #ccc;background:#fff}
+  @media(max-width:1000px){.layout{grid-template-columns:1fr}.map{height:420px}.list{max-height:220px}}
+  details{margin-top:10px}summary{font-weight:600;cursor:pointer}
+  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;z-index:1200}
+  .modal .panel-inner{background:var(--card);padding:18px;border-radius:12px;max-width:560px;width:100%}
+  textarea.import-area{width:100%;min-height:100px;border-radius:8px;border:1px dashed #ddd;padding:8px;background:#fff}
+  .small-muted{font-size:0.9rem;color:var(--muted-2)}
+  .marker-dot{position:absolute;width:10px;height:10px;border-radius:999px;background:var(--primary);box-shadow:0 0 6px rgba(10,132,255,0.4);transform:translate(-50%,-50%);pointer-events:auto}
+</style>
 </head>
 <body data-theme="light">
   <header>
-    <h1>Bangalore Relief & Assistance Map</h1>
-    <p>Complete single-file tool — offline caching, localization, moderation, clustering, CSV import/export. (Fixed — language selector & UI bugs resolved.)</p>
+    <h1>Bangalore Relief & Assistance — Interactive Globe</h1>
+    <p class="small-muted">Sleek white theme. Drag the globe to rotate, wheel to zoom. Add reports, export/import CSV, moderate data, save offline.</p>
   </header>
 
   <main>
@@ -84,7 +82,6 @@
       </div>
 
       <div class="controls">
-        <!-- single language selector -->
         <select id="lang" class="lang" title="Language" aria-label="Language selector">
           <option value="en">English</option>
           <option value="ur">اردو (Urdu)</option>
@@ -100,7 +97,7 @@
     </div>
 
     <div class="layout">
-      <aside class="panel">
+      <aside class="panel" aria-label="Left panel">
         <h2 id="leftTitle">Nearby Assistance</h2>
 
         <div class="filters" role="tablist" aria-label="Filters">
@@ -134,18 +131,17 @@
         </details>
       </aside>
 
-      <section class="map-wrap">
-        <div class="map" id="map" role="img" aria-label="Map of Bangalore with relief markers">
-          <svg id="svgmap" viewBox="0 0 1000 800" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-            <rect x="0" y="0" width="1000" height="800" fill="transparent"/>
-            <g id="clusters"></g>
-            <g id="markers"></g>
-          </svg>
+      <section class="map-wrap" aria-label="Map area">
+        <div class="map" id="map">
+          <!-- Canvas globe -->
+          <canvas id="globeCanvas" width="700" height="700" aria-label="Interactive globe"></canvas>
+          <!-- Markers container (DOM) for small UI dots if needed -->
+          <div id="markersOverlay" style="position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none"></div>
         </div>
 
         <div class="details" id="placeDetails">
           <strong id="detailName">Select a place</strong>
-          <div id="detailType" style="margin-top:6px;color:var(--muted)"></div>
+          <div id="detailType" style="margin-top:6px;color:var(--muted-2)"></div>
           <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
             <button id="directionsBtn" class="btn ghost">Copy Coordinates</button>
             <button id="verifyBtn" class="btn ghost">Mark Verified</button>
@@ -203,302 +199,414 @@
     Bangalore Relief & Assistance Map — Community Edition
   </footer>
 
-  <script>
-    // ---------- Translations ----------
-    const translations = {
-      en: { nearby: 'Nearby Assistance', searchPlaceholder: 'Search places, e.g., hospital, shelter...' },
-      ur: { nearby: 'قریب موجود امدادی مراکز', searchPlaceholder: 'جگہوں میں تلاش کریں، مثلاً اسپتال، شیلٹر...' },
-      ta: { nearby: 'அருகிலுள்ள உதவி மையங்கள்', searchPlaceholder: 'இடங்களைக் தேடு, உதா., மருத்துவமனை, தங்குமிடம்...' },
-      ml: { nearby: 'ഉള്ളടുത്ത് സഹായ കേന്ദ്രങ്ങൾ', searchPlaceholder: 'സ്ഥലങ്ങൾ തിരയുക, ഉദാഹരണം: ആശുപത്രി, ആശ്രയം...' },
-      kn: { nearby: 'ಸಮೀಪದ ನೆರವಿನ ಕೇಂದ್ರಗಳು', searchPlaceholder: 'ಸ್ಥಳಗಳನ್ನು ಹುಡುಕಿ, ಉದಾ: ಆಸ್ಪತ್ರೆ, ಆಶ್ರಯ...' }
-    };
+<script>
+/* ====== TRANSLATIONS & DATA ====== */
+const translations = {
+  en:{nearby:'Nearby Assistance',searchPlaceholder:'Search places, e.g., hospital, shelter...'},
+  ur:{nearby:'قریب موجود امدادی مراکز',searchPlaceholder:'جگہوں میں تلاش کریں، مثلاً اسپتال، شیلٹر...'},
+  ta:{nearby:'அருகிலுள்ள உதவி மையங்கள்',searchPlaceholder:'இடங்களைக் தேடு, உதா., மருத்துவமனை, தங்குமிடம்...'},
+  ml:{nearby:'ഉള്ളടുത്ത് സഹായ കേന്ദ്രങ്ങൾ',searchPlaceholder:'സ്ഥലങ്ങൾ തിരയുക, ഉദാഹരണം: ആശുപത്രി, ആശ്രയം...'},
+  kn:{nearby:'ಸಮೀಪದ ನೆರವಿನ ಕೇಂದ್ರಗಳು',searchPlaceholder:'ಸ್ಥಳಗಳನ್ನು ಹುಡುಕಿ, ಉದಾ: ಆಸ್ಪತ್ರೆ, ಆಶ್ರಯ...'}
+};
 
-    // ---------- Data & Storage ----------
-    const defaultPlaces = [
-      { name: "Indira Canteen - Cubbon Park", type: "Food Aid", lat: 12.9765, lon: 77.5920, verified: true },
-      { name: "BBMP Night Shelter - Shivajinagar", type: "Shelter", lat: 12.9840, lon: 77.6050, verified: true },
-      { name: "Victoria Hospital", type: "Medical Help", lat: 12.9582, lon: 77.5732, verified: true },
-      { name: "KR Market Relief Centre", type: "Assistance Hub", lat: 12.9599, lon: 77.5771, verified: false },
-      { name: "Goonj Collection - Koramangala", type: "NGO Support", lat: 12.9352, lon: 77.6245, verified: true },
-      { name: "St. John's Hospital", type: "Medical Help", lat: 12.9344, lon: 77.6060, verified: true },
-      { name: "HSR Layout Community Kitchen", type: "Food Aid", lat: 12.9121, lon: 77.6446, verified: false }
-    ];
-    const STORAGE_KEY = 'bangalore_relief_places_v2';
-    function loadPlaces(){ try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw) return JSON.parse(raw); }catch(e){ console.warn('loadPlaces', e); } return defaultPlaces.slice(); }
-    function savePlaces(list){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); alert('Saved for offline use.'); }catch(e){ alert('Unable to save locally.'); } }
-    let places = loadPlaces();
+const defaultPlaces = [
+  { name: "Indira Canteen - Cubbon Park", type: "Food Aid", lat: 12.9765, lon: 77.5920, verified: true },
+  { name: "BBMP Night Shelter - Shivajinagar", type: "Shelter", lat: 12.9840, lon: 77.6050, verified: true },
+  { name: "Victoria Hospital", type: "Medical Help", lat: 12.9582, lon: 77.5732, verified: true },
+  { name: "KR Market Relief Centre", type: "Assistance Hub", lat: 12.9599, lon: 77.5771, verified: false },
+  { name: "Goonj Collection - Koramangala", type: "NGO Support", lat: 12.9352, lon: 77.6245, verified: true },
+  { name: "St. John's Hospital", type: "Medical Help", lat: 12.9344, lon: 77.6060, verified: true },
+  { name: "HSR Layout Community Kitchen", type: "Food Aid", lat: 12.9121, lon: 77.6446, verified: false }
+];
+const STORAGE_KEY = 'bangalore_relief_places_v3';
+function loadPlaces(){ try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw) return JSON.parse(raw); }catch(e){ console.warn('loadPlaces', e);} return defaultPlaces.slice(); }
+function savePlaces(list){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); alert('Saved for offline use.'); }catch(e){ alert('Unable to save locally.'); } }
+let places = loadPlaces();
 
-    // ---------- Service Worker (blob register) ----------
-    const swContents = `const CACHE_NAME='bangalore-relief-cache-v1';self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(['./']))) ;self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim());});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));});`;
-    (function registerSW(){
-      if('serviceWorker' in navigator){
-        try{
-          const blob = new Blob([swContents],{type:'application/javascript'});
-          const url = URL.createObjectURL(blob);
-          navigator.serviceWorker.register(url).then(()=>console.log('SW registered (blob)')).catch(e=>console.warn('SW reg failed', e));
-        }catch(e){ console.warn('SW error', e); }
-      }
-    })();
+/* ====== SIMPLE SERVICE WORKER (BLOB) ====== */
+const swContents = `const CACHE_NAME='bangalore-relief-cache-v1';self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(['./'])));self.skipWaiting();});self.addEventListener('activate',e=>{e.waitUntil(self.clients.claim());});self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)));});`;
+(function registerSW(){ if('serviceWorker' in navigator){ try{ const blob = new Blob([swContents],{type:'application/javascript'}); const url=URL.createObjectURL(blob); navigator.serviceWorker.register(url).then(()=>console.log('SW registered')).catch(e=>console.warn('SW reg failed',e)); }catch(e){console.warn('SW err',e);} } })();
 
-    // ---------- Map helpers ----------
-    const BBOX = {minLat:12.88, maxLat:13.07, minLon:77.49, maxLon:77.68};
-    function project(lat, lon){
-      const x = ((lon - BBOX.minLon)/(BBOX.maxLon - BBOX.minLon))*1000;
-      const y = ((BBOX.maxLat - lat)/(BBOX.maxLat - BBOX.minLat))*800;
-      return {x,y};
+/* ====== GLOBE RENDER (Canvas orthographic projection) ======
+   - Uses equirectangular Earth texture from NASA (public image)
+   - Drag to rotate, wheel to zoom, double-click to reset
+   - Projects markers (lat/lon) to canvas
+   NOTE: If you need fully offline, I can embed the texture as base64 (file will be large).
+*/
+const canvas = document.getElementById('globeCanvas');
+const ctx = canvas.getContext('2d', { alpha: true });
+let cw = canvas.width = canvas.clientWidth || 700;
+let ch = canvas.height = canvas.clientHeight || 700;
+
+// texture URLs (public NASA moderate-res). Change if you want different quality.
+// Cloud overlay (optional) and earth texture:
+const TEX = 'https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57730/land_ocean_ice_2048.jpg';
+const CLOUDS = 'https://eoimages.gsfc.nasa.gov/images/imagerecords/57000/57730/earthclouds2048.png';
+
+// loaded images:
+const img = new Image();
+img.crossOrigin = 'anonymous';
+img.src = TEX;
+
+const cloudsImg = new Image();
+cloudsImg.crossOrigin = 'anonymous';
+cloudsImg.src = CLOUDS;
+
+let imgReady=false, cloudsReady=false;
+img.onload = ()=>{ imgReady=true; draw(); };
+cloudsImg.onload = ()=>{ cloudsReady=true; draw(); };
+
+// globe state
+let rotation = { lon: 77.5946, lat: 12.9716 }; // initial center near Bangalore (lon,lat)
+let rotLon = 0; // degrees (positive east)
+let rotLat = 0; // tilt (unused for orthographic but keep)
+let scale = 0.95; // 0..1 visible globe fraction
+let dragging = false;
+let lastMouse = null;
+let velocityX = 0;
+let velocityDecay = 0.95;
+
+function resizeCanvas(){
+  cw = canvas.width = canvas.clientWidth;
+  ch = canvas.height = canvas.clientHeight;
+}
+window.addEventListener('resize', ()=>{ resizeCanvas(); draw(); });
+
+// convert lat/lon to 3D unit sphere (x,y,z)
+function latLonToVec(lat, lon){
+  const phi = (90 - lat) * Math.PI/180;
+  const theta = (lon + 180) * Math.PI/180;
+  const x = Math.sin(phi) * Math.cos(theta);
+  const y = Math.cos(phi);
+  const z = Math.sin(phi) * Math.sin(theta);
+  return {x,y,z};
+}
+
+// project sphere point to canvas (simple orthographic)
+function projectVec(v, rotDeg, scaleFactor){
+  // rotate around Y by rotDeg (degrees)
+  const a = rotDeg * Math.PI/180;
+  const x = v.x * Math.cos(a) + v.z * Math.sin(a);
+  const z = v.z * Math.cos(a) - v.x * Math.sin(a);
+  const y = v.y;
+  // if z > 0 visible (facing camera), map x,y to canvas
+  return { x: x * scaleFactor, y: y * scaleFactor, z: z };
+}
+
+function draw(){
+  if(!imgReady) {
+    // placeholder while texture loads
+    ctx.clearRect(0,0,cw,ch);
+    ctx.fillStyle = '#eef2ff';
+    ctx.fillRect(0,0,cw,ch);
+    ctx.fillStyle = '#999';
+    ctx.font = '16px Inter, Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Loading globe texture...', cw/2, ch/2);
+    return;
+  }
+  ctx.clearRect(0,0,cw,ch);
+  const radius = Math.min(cw, ch) * 0.45 * scale;
+  const cx = cw/2, cy = ch/2;
+
+  // draw ocean base (so edges anti-aliased)
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx,cy,radius,0,Math.PI*2);
+  ctx.clip();
+  ctx.fillStyle = '#0a3a66';
+  ctx.fillRect(cx-radius, cy-radius, radius*2, radius*2);
+
+  // draw the textured globe by sampling from equirectangular image.
+  // We'll render into an offscreen canvas scaled to 1024 to keep performance acceptable.
+  const offRes = 1024;
+  const off = document.createElement('canvas');
+  off.width = offRes; off.height = offRes;
+  const offCtx = off.getContext('2d');
+  // draw the source texture to offscreen (scaled to width:height 2:1)
+  offCtx.drawImage(img, 0, 0, offRes, offRes/2);
+
+  // we will iterate over pixels of the visible circle at a reasonable step to balance speed
+  const step = Math.max(1, Math.floor(radius/180)); // adjust resolution with radius
+  const imgData = offCtx.getImageData(0,0,off.width,off.height);
+  const iw = off.width, ih = off.height;
+
+  // rotation in degrees
+  const rot = rotLon; // rotLon maintained by drag or inertia
+
+  for(let py = -radius; py <= radius; py += step){
+    const y = py;
+    const ry = y / radius;
+    const lat = Math.asin(ry) * 180/Math.PI * -1; // convert to lat
+    for(let px = -radius; px <= radius; px += step){
+      const x = px;
+      if(x*x + y*y > radius*radius) continue;
+      // compute lon depending on rotation
+      const lon = Math.atan2(x, -y /* camera simple mapping */) * 180/Math.PI; // approximate mapping
+      // Better approach: compute unit vector and map to lat/lon
+      const nx = x / radius;
+      const ny = y / radius;
+      // compute spherical coordinates: using inverse orthographic projection
+      const zsq = 1 - nx*nx - ny*ny;
+      if(zsq < 0) continue;
+      const nz = Math.sqrt(zsq);
+      // rotate back by rot around Y
+      const a = rot * Math.PI/180;
+      const vx = nx * Math.cos(a) - nz * Math.sin(a);
+      const vz = nx * Math.sin(a) + nz * Math.cos(a);
+      const vy = ny;
+      // convert to lat/lon
+      const lat2 = Math.asin(vy) * 180/Math.PI;
+      const lon2 = Math.atan2(vz, vx) * 180/Math.PI;
+      // sample from equirectangular image
+      let u = (lon2 + 180) / 360;
+      let v = (90 - lat2) / 180;
+      // wrap
+      u = u - Math.floor(u);
+      const sx = Math.floor(u * iw);
+      const sy = Math.floor(v * ih);
+      const idx = (sy * iw + sx) * 4;
+      const r = imgData.data[idx], g = imgData.data[idx+1], b = imgData.data[idx+2], a2 = imgData.data[idx+3];
+      ctx.fillStyle = `rgba(${r},${g},${b},${a2/255})`;
+      ctx.fillRect(cx + x, cy + y, step, step);
     }
-    function clearSvgChildren(id){ const el = document.getElementById(id); while(el.firstChild) el.removeChild(el.firstChild); }
+  }
+  // optional clouds overlay (semi-transparent)
+  if(cloudsReady){
+    // draw clouds aligned with same rotation
+    // draw clouds to offscreen scaled
+    const offC = document.createElement('canvas');
+    offC.width = offRes; offC.height = offRes/2;
+    const offCCtx = offC.getContext('2d');
+    offCCtx.drawImage(cloudsImg, 0, 0, offC.width, offC.height);
+    // set global alpha for subtle clouds
+    ctx.globalAlpha = 0.35;
+    // composite clouds by sampling very roughly: draw the clouds image rotated by same
+    // Simplify: draw the entire clouds image stretched across, then clip to circle and rotate canvas
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(rot * Math.PI/180);
+    ctx.drawImage(cloudsImg, -radius, -radius, radius*2, radius*2);
+    ctx.restore();
+    ctx.globalAlpha = 1.0;
+  }
 
-    function clusterAndRender(list, grid=60){
-      const markersG = document.getElementById('markers');
-      const clustersG = document.getElementById('clusters');
-      clearSvgChildren('markers'); clearSvgChildren('clusters');
-      const buckets = {};
-      list.forEach((p,i) => {
-        const {x,y} = project(p.lat, p.lon);
-        const key = Math.floor(x/grid) + ':' + Math.floor(y/grid);
-        if(!buckets[key]) buckets[key] = [];
-        buckets[key].push({p,i,x,y});
-      });
-      Object.values(buckets).forEach(bucket => {
-        if(bucket.length === 1){
-          const it = bucket[0];
-          renderMarker(it.p, it.i, it.x, it.y);
-        } else {
-          const cx = bucket.reduce((s,b)=>s+b.x,0)/bucket.length;
-          const cy = bucket.reduce((s,b)=>s+b.y,0)/bucket.length;
-          const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-          const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
-          circle.setAttribute('r', 12);
-          circle.setAttribute('fill', '#6a0dad');
-          circle.setAttribute('opacity', 0.95);
-          g.appendChild(circle);
-          const text = document.createElementNS('http://www.w3.org/2000/svg','text');
-          text.setAttribute('x', -4);
-          text.setAttribute('y', 6);
-          text.setAttribute('font-size', 12);
-          text.setAttribute('fill', '#fff');
-          text.textContent = bucket.length;
-          g.appendChild(text);
-          g.setAttribute('transform', `translate(${cx},${cy})`);
-          g.addEventListener('click', ()=>{ clusterAndRender(list, Math.max(16, grid/2)); });
-          clustersG.appendChild(g);
-        }
-      });
+  // draw rim
+  ctx.beginPath();
+  ctx.arc(cx,cy,radius,0,Math.PI*2);
+  ctx.lineWidth = Math.max(2, Math.round(radius*0.03));
+  ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+  ctx.stroke();
+  ctx.restore();
+
+  // draw markers projected (only those with visible hemisphere)
+  drawMarkersOnGlobe(cx,cy,radius,rot);
+}
+
+// Project lat/lon to canvas coordinates for orthographic view given rotation (degrees)
+function projectLatLonToCanvas(lat, lon, cx, cy, radius, rotDeg){
+  // convert lat/lon to 3D
+  const phi = (90 - lat) * Math.PI/180;
+  const theta = (lon + 180) * Math.PI/180;
+  let x = Math.sin(phi) * Math.cos(theta);
+  let y = Math.cos(phi);
+  let z = Math.sin(phi) * Math.sin(theta);
+  // rotate around Y by -rotDeg (since globe rotated to show rotDeg lon at center)
+  const a = -rotDeg * Math.PI/180;
+  const xr = x * Math.cos(a) - z * Math.sin(a);
+  const zr = z * Math.cos(a) + x * Math.sin(a);
+  // orthographic projection: visible if zr < 0 (facing camera)
+  if(zr > 0) return null; // behind globe
+  const px = cx + xr * radius;
+  const py = cy - y * radius;
+  return {x:px,y:py};
+}
+
+function drawMarkersOnGlobe(cx,cy,radius,rot){
+  // remove DOM marker dots and redraw
+  const overlay = document.getElementById('markersOverlay');
+  overlay.innerHTML = '';
+  places.forEach(p=>{
+    const pt = projectLatLonToCanvas(p.lat, p.lon, cx, cy, radius, rot);
+    if(pt){
+      // create small dot
+      const dot = document.createElement('div');
+      dot.className = 'marker-dot';
+      dot.style.left = pt.x + 'px';
+      dot.style.top = pt.y + 'px';
+      dot.title = p.name;
+      dot.style.pointerEvents = 'auto';
+      dot.addEventListener('click', (e)=>{ e.stopPropagation(); selectPlace(p); });
+      overlay.appendChild(dot);
     }
+  });
+}
 
-    function renderMarker(p,i,x,y){
-      const g = document.getElementById('markers');
-      const group = document.createElementNS('http://www.w3.org/2000/svg','g');
-      group.setAttribute('class','marker');
-      group.setAttribute('transform', `translate(${x},${y})`);
-      const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
-      circle.setAttribute('r',8);
-      circle.setAttribute('fill', p.verified? '#16a34a' : '#9d4edd');
-      circle.setAttribute('stroke','#fff');
-      circle.setAttribute('stroke-width',2);
-      group.appendChild(circle);
-      const label = document.createElementNS('http://www.w3.org/2000/svg','text');
-      label.setAttribute('x',12);
-      label.setAttribute('y',6);
-      label.setAttribute('font-size',12);
-      label.setAttribute('fill','#222');
-      label.textContent = p.name.split(' - ')[0];
-      group.appendChild(label);
-      group.addEventListener('click', ()=> selectPlace(p));
-      g.appendChild(group);
+/* ==== interaction: drag to rotate, wheel to zoom, double click to reset ==== */
+canvas.addEventListener('pointerdown', (e)=>{
+  dragging = true;
+  lastMouse = {x:e.clientX, y:e.clientY};
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove', (e)=>{
+  if(!dragging) return;
+  const dx = e.clientX - lastMouse.x;
+  // horizontal movement changes rotation
+  rotLon += dx * 0.3; // sensitivity
+  lastMouse = {x:e.clientX, y:e.clientY};
+  velocityX = dx * 0.3;
+  draw();
+});
+canvas.addEventListener('pointerup', (e)=>{ dragging = false; lastMouse = null; });
+canvas.addEventListener('pointerleave', ()=>{ dragging=false; lastMouse=null; });
+canvas.addEventListener('wheel', (e)=>{
+  e.preventDefault();
+  scale *= (1 - e.deltaY * 0.001);
+  scale = Math.min(1.5, Math.max(0.5, scale));
+  draw();
+});
+canvas.addEventListener('dblclick', ()=>{
+  rotLon = 0; scale = 0.95; draw();
+});
+
+// simple inertial spin when not dragging
+function tick(){
+  if(!dragging){
+    if(Math.abs(velocityX) > 0.01){
+      rotLon += velocityX;
+      velocityX *= velocityDecay;
+      draw();
     }
+  }
+  requestAnimationFrame(tick);
+}
+tick();
 
-    // ---------- UI rendering ----------
-    const placesListEl = document.getElementById('placesList');
-    const searchInput = document.getElementById('searchInput');
+/* ====== UI: list, search, filters, add, import/export, admin ====== */
+const placesListEl = document.getElementById('placesList');
+const searchInput = document.getElementById('searchInput');
 
-    function renderList(list){
-      placesListEl.innerHTML = '';
-      if(!list.length){
-        placesListEl.innerHTML = '<div style="padding:12px;color:var(--muted)">No results</div>';
-        return;
-      }
-      list.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'place';
-        const badge = p.verified? '<span class="badge" style="background:#e6ffed;color:#067a24">Verified</span>' : '<span class="badge">Pending</span>';
-        div.innerHTML = `<strong>${escapeHtml(p.name)}</strong> ${badge} <small>${escapeHtml(p.type)} • ${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}</small>`;
-        div.addEventListener('click', ()=> selectPlace(p));
-        placesListEl.appendChild(div);
-      });
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
+
+function renderList(list){
+  placesListEl.innerHTML='';
+  if(!list.length){ placesListEl.innerHTML = '<div style="padding:12px;color:var(--muted-2)">No results</div>'; return; }
+  list.forEach(p=>{
+    const div = document.createElement('div');
+    div.className='place';
+    const badge = p.verified? '<span class="badge">Verified</span>' : '<span class="badge" style="background:#fff4ea;color:#c47a00">Pending</span>';
+    div.innerHTML = `<strong>${escapeHtml(p.name)}</strong> ${badge}<small style="display:block;color:var(--muted-2)">${escapeHtml(p.type)} • ${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}</small>`;
+    div.addEventListener('click', ()=> { selectPlace(p); });
+    placesListEl.appendChild(div);
+  });
+}
+
+function selectPlace(p){
+  document.getElementById('detailName').textContent = p.name;
+  document.getElementById('detailType').textContent = p.type + ' • ' + p.lat + ', ' + p.lon;
+  document.getElementById('verifyBtn').onclick = ()=>{ p.verified=true; savePlaces(places); renderList(places); draw(); alert('Marked verified locally.'); };
+  document.getElementById('directionsBtn').onclick = ()=>{ if(navigator.clipboard) navigator.clipboard.writeText(p.lat+','+p.lon).then(()=>alert('Coordinates copied')); };
+  // animate globe so that the place becomes centered
+  // set rotLon so that place.lon is at center (rotLon = -lon)
+  rotLon = -p.lon;
+  draw();
+}
+
+function filterAndRender(){
+  const q = searchInput.value.trim().toLowerCase();
+  const activeChip = document.querySelector('.chip.active');
+  const type = activeChip ? activeChip.getAttribute('data-type') : 'all';
+  let out = places.filter(p => (type === 'all' || (type === 'pending' ? !p.verified : p.type === type)));
+  if(q) out = out.filter(p => (p.name.toLowerCase().includes(q) || (p.type||'').toLowerCase().includes(q)));
+  renderList(out);
+  draw();
+}
+
+document.getElementById('searchBtn').addEventListener('click', filterAndRender);
+searchInput.addEventListener('keyup', e=>{ if(e.key==='Enter') filterAndRender(); });
+document.querySelectorAll('.chip').forEach(ch=>{ ch.addEventListener('click', ()=>{ document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); ch.classList.add('active'); filterAndRender(); }); });
+
+/* ===== location & reset ===== */
+document.getElementById('resetBtn').addEventListener('click', ()=>{ places = loadPlaces(); renderList(places); draw(); });
+document.getElementById('locateBtn').addEventListener('click', ()=>{ if(navigator.geolocation){ navigator.geolocation.getCurrentPosition(pos=>{ const lat=pos.coords.latitude, lon=pos.coords.longitude; // center globe
+ rotLon = -lon; draw(); // sort list by distance
+ const sorted = places.map(p=>({...p,dist:distanceKm(lat,lon,p.lat,p.lon)})).sort((a,b)=>a.dist-b.dist); renderList(sorted); }, ()=>{ alert('Location access denied'); }); } else alert('Geolocation not supported'); });
+
+function distanceKm(lat1,lon1,lat2,lon2){ const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
+
+/* ===== add place modal ===== */
+const modal = document.getElementById('modal');
+document.getElementById('addPlaceBtn').addEventListener('click', ()=>{ modal.style.display='flex'; modal.setAttribute('aria-hidden','false'); document.getElementById('pName').focus(); });
+document.getElementById('cancelAdd').addEventListener('click', ()=>{ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); });
+document.getElementById('confirmAdd').addEventListener('click', ()=>{
+  const name = document.getElementById('pName').value.trim();
+  const type = document.getElementById('pType').value;
+  const lat = parseFloat(document.getElementById('pLat').value);
+  const lon = parseFloat(document.getElementById('pLon').value);
+  if(!name || isNaN(lat) || isNaN(lon)){ alert('Please provide name and valid coordinates'); return; }
+  const newP = { name, type, lat, lon, verified:false, reportedAt:new Date().toISOString() };
+  places.unshift(newP);
+  modal.style.display='none'; modal.setAttribute('aria-hidden','true');
+  renderList(places); savePlaces(places); draw(); alert('Report added as Pending.');
+});
+document.getElementById('saveBtn').addEventListener('click', ()=> savePlaces(places));
+
+/* ===== CSV export/import ===== */
+function exportCSV(){
+  const rows = places.map(p => [p.name.replace(/,/g,' '), p.type, p.lat, p.lon, p.verified ? 'true' : 'false'].join(','));
+  const csv = 'Name,Type,Lat,Lon,Verified\n' + rows.join('\n');
+  const blob = new Blob([csv], {type:'text/csv'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download='bangalore_relief_places.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function importCSVText(text){
+  const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  if(lines.length === 0) return 0;
+  const header = lines[0].toLowerCase().includes('name') ? lines.shift() : null;
+  const imported = [];
+  lines.forEach(l=>{
+    const cols = l.split(',');
+    if(cols.length >= 4){
+      const name = cols[0].trim(); const type = cols[1].trim();
+      const lat = parseFloat(cols[2]); const lon = parseFloat(cols[3]);
+      const verified = (cols[4]||'').trim().toLowerCase() === 'true';
+      if(!isNaN(lat) && !isNaN(lon)) imported.push({name,type,lat,lon,verified});
     }
+  });
+  if(imported.length){ places = imported.concat(places); savePlaces(places); renderList(places); draw(); }
+  return imported.length;
+}
+document.getElementById('exportBtn').addEventListener('click', exportCSV);
+document.getElementById('importBtn').addEventListener('click', ()=>{ const txt = prompt('Paste CSV rows (Name,Type,Lat,Lon,Verified). Leave header out or include it.'); if(txt){ const n = importCSVText(txt); alert(n ? ('Imported ' + n + ' places.') : 'No valid rows found.'); } });
 
-    function selectPlace(p){
-      document.getElementById('detailName').textContent = p.name;
-      document.getElementById('detailType').textContent = p.type + ' • ' + p.lat + ', ' + p.lon;
-      document.getElementById('verifyBtn').onclick = ()=> { p.verified = true; savePlaces(places); renderList(places); clusterAndRender(places); alert('Marked verified locally.'); };
-      document.getElementById('directionsBtn').onclick = ()=> {
-        if(navigator.clipboard) navigator.clipboard.writeText(p.lat+','+p.lon).then(()=>alert('Coordinates copied'));
-      };
-    }
+/* ===== admin/moderation ===== */
+const adminOpen = document.getElementById('adminOpen'), adminModal = document.getElementById('adminModal');
+const adminLogin = document.getElementById('adminLogin'), adminPass = document.getElementById('adminPass');
+const adminControls = document.getElementById('adminControls'), closeAdmin = document.getElementById('closeAdmin');
+const approveAll = document.getElementById('approveAll'), doImport = document.getElementById('doImport');
 
-    // safe HTML escape for inserted strings
-    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
+adminOpen.addEventListener('click', ()=>{ adminModal.style.display='flex'; adminModal.setAttribute('aria-hidden','false'); adminPass.focus(); });
+closeAdmin.addEventListener('click', ()=>{ adminModal.style.display='none'; adminModal.setAttribute('aria-hidden','true'); adminControls.style.display='none'; adminControls.setAttribute('aria-hidden','true'); adminPass.value=''; });
 
-    // ---------- Search & Filters ----------
-    function filterAndRender(){
-      const q = searchInput.value.trim().toLowerCase();
-      const activeChip = document.querySelector('.chip.active');
-      const type = activeChip ? activeChip.getAttribute('data-type') : 'all';
-      let out = places.filter(p => (type === 'all' || (type === 'pending' ? !p.verified : p.type === type)));
-      if(q) out = out.filter(p => (p.name.toLowerCase().includes(q) || (p.type||'').toLowerCase().includes(q)));
-      renderList(out);
-      clusterAndRender(out);
-    }
-    document.getElementById('searchBtn').addEventListener('click', filterAndRender);
-    searchInput.addEventListener('keyup', e => { if(e.key === 'Enter') filterAndRender(); });
-    document.querySelectorAll('.chip').forEach(ch => {
-      ch.addEventListener('click', ()=>{ document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); ch.classList.add('active'); filterAndRender(); });
-    });
+adminLogin.addEventListener('click', ()=>{ const pw = adminPass.value; if(!pw){ alert('Enter password'); return; } sessionStorage.setItem('bangalore_admin_pw', pw); adminControls.style.display='block'; adminControls.setAttribute('aria-hidden','false'); alert('Logged in for this session.'); });
 
-    // ---------- Location / Reset ----------
-    document.getElementById('resetBtn').addEventListener('click', ()=> { places = loadPlaces(); renderList(places); clusterAndRender(places); });
-    document.getElementById('locateBtn').addEventListener('click', ()=> {
-      if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(pos => {
-          const lat = pos.coords.latitude, lon = pos.coords.longitude;
-          const sorted = places.map(p=>({...p, dist: distanceKm(lat,lon,p.lat,p.lon)})).sort((a,b)=>a.dist-b.dist);
-          renderList(sorted); clusterAndRender(sorted);
-        }, ()=> { alert('Location access denied'); });
-      } else alert('Geolocation not supported');
-    });
-    function distanceKm(lat1,lon1,lat2,lon2){ const R=6371; const dLat=(lat2-lat1)*Math.PI/180; const dLon=(lon2-lon1)*Math.PI/180; const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2; return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
+approveAll.addEventListener('click', ()=>{ let count=0; places.forEach(p=>{ if(!p.verified){ p.verified=true; count++; }}); savePlaces(places); renderList(places); draw(); alert('Approved '+count+' entries.'); });
+doImport.addEventListener('click', ()=>{ const txt = document.getElementById('importArea').value; if(!txt) return alert('Paste CSV rows to import'); const n = importCSVText(txt); alert(n ? ('Imported '+n+' places.') : 'No valid rows found.'); });
 
-    // ---------- Add place modal ----------
-    const modal = document.getElementById('modal');
-    document.getElementById('addPlaceBtn').addEventListener('click', ()=>{ modal.style.display='flex'; modal.setAttribute('aria-hidden','false'); document.getElementById('pName').focus(); });
-    document.getElementById('cancelAdd').addEventListener('click', ()=>{ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); });
-    document.getElementById('confirmAdd').addEventListener('click', ()=> {
-      const name = document.getElementById('pName').value.trim();
-      const type = document.getElementById('pType').value;
-      const lat = parseFloat(document.getElementById('pLat').value);
-      const lon = parseFloat(document.getElementById('pLon').value);
-      if(!name || isNaN(lat) || isNaN(lon)){ alert('Please provide name and valid coordinates'); return; }
-      const newP = { name, type, lat, lon, verified: false, reportedAt: new Date().toISOString() };
-      places.unshift(newP);
-      modal.style.display='none'; modal.setAttribute('aria-hidden','true');
-      renderList(places); clusterAndRender(places); savePlaces(places);
-      alert('Report added as Pending.');
-    });
-    document.getElementById('saveBtn').addEventListener('click', ()=> savePlaces(places));
+/* ===== Theme & language ===== */
+const themeToggle = document.getElementById('themeToggle');
+themeToggle.addEventListener('click', ()=>{ const body=document.body; if(body.getAttribute('data-theme')==='dark'){ body.setAttribute('data-theme','light'); themeToggle.textContent='Dark'; themeToggle.setAttribute('aria-pressed','false'); } else { body.setAttribute('data-theme','dark'); themeToggle.textContent='Light'; themeToggle.setAttribute('aria-pressed','true'); }});
 
-    // ---------- CSV export/import ----------
-    function exportCSV(){
-      const rows = places.map(p => [p.name.replace(/,/g,' '), p.type, p.lat, p.lon, p.verified ? 'true' : 'false'].join(','));
-      const csv = 'Name,Type,Lat,Lon,Verified\n' + rows.join('\n');
-      const blob = new Blob([csv], {type:'text/csv'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'bangalore_relief_places.csv';
-      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    }
-    function importCSVText(text){
-      const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
-      if(lines.length === 0) return 0;
-      const header = lines[0].toLowerCase().includes('name') ? lines.shift() : null;
-      const imported = [];
-      lines.forEach(l => {
-        const cols = l.split(',');
-        if(cols.length >= 4){
-          const name = cols[0].trim();
-          const type = cols[1].trim();
-          const lat = parseFloat(cols[2]);
-          const lon = parseFloat(cols[3]);
-          const verified = (cols[4]||'').trim().toLowerCase() === 'true';
-          if(!isNaN(lat) && !isNaN(lon)) imported.push({name, type, lat, lon, verified});
-        }
-      });
-      if(imported.length){
-        places = imported.concat(places);
-        savePlaces(places);
-        renderList(places);
-        clusterAndRender(places);
-      }
-      return imported.length;
-    }
-    document.getElementById('exportBtn').addEventListener('click', exportCSV);
-    document.getElementById('importBtn').addEventListener('click', ()=> {
-      const txt = prompt('Paste CSV rows (Name,Type,Lat,Lon,Verified). Leave header out or include it.');
-      if(txt){
-        const n = importCSVText(txt);
-        alert(n ? ('Imported ' + n + ' places.') : 'No valid rows found.');
-      }
-    });
+const langSel = document.getElementById('lang');
+langSel.addEventListener('change', ()=> applyLang(langSel.value));
+function applyLang(code){ const t = translations[code] || translations.en; document.getElementById('leftTitle').textContent = t.nearby; searchInput.placeholder = t.searchPlaceholder; document.getElementById('unwrittenSummary').textContent = (code==='ur')? 'Unwritten — ثقافتی نوٹس' : (code==='ta')? 'Unwritten — பண்பாட்டு குறிப்புகள்' : (code==='ml')? 'Unwritten — സംസ്കാരപരമായ കുറിപ്പുകൾ' : (code==='kn')? 'Unwritten — ಸಾಂಸ್ಕೃತಿಕ ಟಿಪ್ಪಣಿಗಳು' : 'Unwritten — Cultural Notes'; }
 
-    // ---------- Moderation / Admin ----------
-    const adminOpen = document.getElementById('adminOpen');
-    const adminModal = document.getElementById('adminModal');
-    const adminLogin = document.getElementById('adminLogin');
-    const adminPass = document.getElementById('adminPass');
-    const adminControls = document.getElementById('adminControls');
-    const closeAdmin = document.getElementById('closeAdmin');
-    const approveAll = document.getElementById('approveAll');
-    const doImport = document.getElementById('doImport');
+/* ===== initial render ===== */
+renderList(places);
+draw();
+applyLang('en');
 
-    adminOpen.addEventListener('click', ()=> { adminModal.style.display='flex'; adminModal.setAttribute('aria-hidden','false'); adminPass.focus(); });
-    closeAdmin.addEventListener('click', ()=> { adminModal.style.display='none'; adminModal.setAttribute('aria-hidden','true'); adminControls.style.display='none'; adminControls.setAttribute('aria-hidden','true'); adminPass.value=''; });
-
-    adminLogin.addEventListener('click', ()=> {
-      const pw = adminPass.value;
-      if(!pw){ alert('Enter password'); return; }
-      sessionStorage.setItem('bangalore_admin_pw', pw);
-      adminControls.style.display = 'block';
-      adminControls.setAttribute('aria-hidden','false');
-      alert('Logged in for this session.');
-    });
-
-    approveAll.addEventListener('click', ()=> {
-      let count = 0;
-      places.forEach(p => { if(!p.verified){ p.verified = true; count++; } });
-      savePlaces(places); renderList(places); clusterAndRender(places);
-      alert('Approved ' + count + ' entries.');
-    });
-
-    doImport.addEventListener('click', ()=> {
-      const txt = document.getElementById('importArea').value;
-      if(!txt) return alert('Paste CSV rows to import');
-      const n = importCSVText(txt);
-      alert(n ? ('Imported ' + n + ' places.') : 'No valid rows found.');
-    });
-
-    // ---------- Theme & Language ----------
-    const themeToggle = document.getElementById('themeToggle');
-    themeToggle.addEventListener('click', ()=> {
-      const body = document.body;
-      if(body.getAttribute('data-theme') === 'dark'){
-        body.setAttribute('data-theme','light');
-        themeToggle.textContent = 'Dark';
-        themeToggle.setAttribute('aria-pressed','false');
-      } else {
-        body.setAttribute('data-theme','dark');
-        themeToggle.textContent = 'Light';
-        themeToggle.setAttribute('aria-pressed','true');
-      }
-    });
-
-    const langSel = document.getElementById('lang');
-    langSel.addEventListener('change', ()=> applyLang(langSel.value));
-    function applyLang(code){
-      const t = translations[code] || translations.en;
-      document.getElementById('leftTitle').textContent = t.nearby;
-      searchInput.placeholder = t.searchPlaceholder;
-      document.getElementById('unwrittenSummary').textContent = (code==='ur')? 'Unwritten — ثقافتی نوٹس' : (code==='ta')? 'Unwritten — பண்பாட்டு குறிப்புகள்' : (code==='ml')? 'Unwritten — സംസ്കാരപരമായ കുറിപ്പുകൾ' : (code==='kn')? 'Unwritten — ಸಾಂಸ್ಕೃತಿಕ ಟಿಪ್ಪಣಿಗಳು' : 'Unwritten — Cultural Notes';
-    }
-
-    // ---------- Initial render ----------
-    renderList(places);
-    clusterAndRender(places);
-    applyLang('en');
-
-    // expose small API for debugging
-    window._app = { places, loadPlaces, savePlaces, renderList, clusterAndRender, importCSVText };
-  </script>
+// expose API
+window._app = { places, loadPlaces, savePlaces, renderList, importCSVText };
+</script>
 </body>
 </html>
+
